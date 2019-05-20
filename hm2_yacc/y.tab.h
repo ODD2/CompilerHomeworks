@@ -60,25 +60,25 @@
      TYPE = 276,
      USE = 277,
      VAR = 278,
-     ARRAY = 279,
-     BOOLEAN = 280,
-     CHAR = 281,
-     CONST = 282,
-     REAL = 283,
-     STRING = 284,
-     INTEGER = 285,
-     ID = 286,
+     BOOLEAN = 279,
+     CHAR = 280,
+     CONST = 281,
+     REAL = 282,
+     STRING = 283,
+     INTEGER = 284,
+     ARRAY = 285,
+     OF = 286,
      TRUE = 287,
      FALSE = 288,
      STRINGV = 289,
      REALV = 290,
      INTEGERV = 291,
-     PRINT = 292,
-     PRINTLN = 293,
-     UTIL = 294,
-     FN = 295,
-     IN = 296,
-     READ = 297,
+     ID = 292,
+     INTID = 293,
+     REALID = 294,
+     BOOLID = 295,
+     STRID = 296,
+     FUNCID = 297,
      LT = 298,
      LEQ = 299,
      GT = 300,
@@ -89,7 +89,13 @@
      ORL = 305,
      NOTL = 306,
      ASSIGN = 307,
-     UNARY = 308
+     PRINT = 308,
+     PRINTLN = 309,
+     UTIL = 310,
+     FN = 311,
+     IN = 312,
+     READ = 313,
+     UNARY = 314
    };
 #endif
 /* Tokens.  */
@@ -114,25 +120,25 @@
 #define TYPE 276
 #define USE 277
 #define VAR 278
-#define ARRAY 279
-#define BOOLEAN 280
-#define CHAR 281
-#define CONST 282
-#define REAL 283
-#define STRING 284
-#define INTEGER 285
-#define ID 286
+#define BOOLEAN 279
+#define CHAR 280
+#define CONST 281
+#define REAL 282
+#define STRING 283
+#define INTEGER 284
+#define ARRAY 285
+#define OF 286
 #define TRUE 287
 #define FALSE 288
 #define STRINGV 289
 #define REALV 290
 #define INTEGERV 291
-#define PRINT 292
-#define PRINTLN 293
-#define UTIL 294
-#define FN 295
-#define IN 296
-#define READ 297
+#define ID 292
+#define INTID 293
+#define REALID 294
+#define BOOLID 295
+#define STRID 296
+#define FUNCID 297
 #define LT 298
 #define LEQ 299
 #define GT 300
@@ -143,22 +149,30 @@
 #define ORL 305
 #define NOTL 306
 #define ASSIGN 307
-#define UNARY 308
+#define PRINT 308
+#define PRINTLN 309
+#define UTIL 310
+#define FN 311
+#define IN 312
+#define READ 313
+#define UNARY 314
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 49 "hw2.yacc"
+#line 158 "hw2.yacc"
 {
 	int boolean;
 	int integer;
 	double real;
 	char * str;
+	void * voidptr;
+	VARTYPE vartype;
 }
 /* Line 1529 of yacc.c.  */
-#line 162 "y.tab.h"
+#line 176 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -1,6 +1,10 @@
 %{
 #include <iostream>
+#include <map>
+#include <string>
 #include <stdio.h>
+#include <vector>
+#include "header.h"
 using namespace std;
 extern "C"
 {
@@ -10,9 +14,126 @@ extern "C"
     {
         return 1;
     }
-
-    //void yyerror(const char[]);
+    VARTYPE idFindType(char * id_name,void ** id_varbox_container );
 }
+
+//IDLIST buffer, Variable Constructions.
+vector<string> IDLIST;
+bool isArray = false;
+int low_range = 0;
+int high_range = 0;
+VARTYPE idType = IDUNKNOWN;
+
+void InitDeclAssists(){
+	isArray = false;
+	low_range = 0;
+	high_range = 0;
+	idType = IDUNKNOWN;
+}
+
+
+
+//Symbol Table Dependencies.
+union VARVALUE{
+	int integer;
+	double real;
+	bool boolean;
+	char * str;
+	int * ArgTypeList;
+	vector<string>* strvec;
+	vector<VARTYPE> * typevec;
+};
+
+struct VARBOX{
+	VARVALUE val;
+	VARTYPE var_type = VARTYPE::IDUNKNOWN;
+	bool is_array = false;
+	bool is_constant = false;
+	int position = -1;
+};
+
+struct TableChain{
+	TableChain * prev;
+	map<string,VARBOX> ChainTable;
+};
+
+//Symbol Tablechain
+TableChain * TABLECHAIN;
+
+//Symbol Table Manipulations
+bool idFind(string id_name,VARBOX *& id_varbox);
+
+VARTYPE idFindType(char * id_name,void ** id_varbox_container ){
+	VARBOX *& id_varbox = *((VARBOX**)id_varbox_container);
+	if(idFind(id_name,id_varbox)){
+		return id_varbox->var_type;
+	}
+	return VARTYPE::IDUNKNOWN;
+}
+
+bool idFind(string id_name,VARBOX *& id_varbox){
+	// cout << "idFind():\n";
+	TableChain * Cur = TABLECHAIN;
+	do{
+		if(Cur->ChainTable.count(id_name)){
+			id_varbox = &(Cur->ChainTable[id_name]);
+			//cout << "Symbol Found:" << id_name << endl;
+			return true;
+		}
+	}while((Cur = Cur->prev));
+
+	// cout << "Symbol Not Found\n";
+	id_varbox = nullptr;
+	return false;
+}
+
+VARBOX& idInsert(string id_name,VARTYPE id_type,bool array = false,int lr=0,int hr=0){
+	VARBOX& newID = TABLECHAIN->ChainTable[id_name];
+	newID.var_type = id_type;
+	newID.is_array = array;
+	return newID;
+}
+
+///////DISPLAY FUNCTIONS///////
+string typePrint(VARTYPE type){
+	switch(type){
+		case IDINT:
+		return "INT";
+		break;
+		case IDREAL:
+		return "REAL";
+		break;
+		case IDBOOL:
+		return "BOOL";
+		break;
+		case IDSTR:
+		return "STR";
+		break;
+		case IDFUNC:
+		return "FUNC";
+		break;
+		default:
+		return "ID";
+		break;
+	}
+}
+
+void varPrint(const string& name,const VARBOX & variable){
+	cout 	<< "<"<<name 
+			<< ",type:" << typePrint(variable.var_type)
+			<< ",Array:" << (variable.is_array?"yes":"no")
+			<< ",Const:" << (variable.is_constant?"yes":"no")
+			<< ">" <<endl;
+}
+
+void tablePrint(){
+	map<string,VARBOX> & printTable = TABLECHAIN->ChainTable;
+	for(auto it = printTable.begin(),ed = printTable.end();it!=ed;++it){
+		varPrint(it->first,it->second);
+	}
+}
+
+
 
 
 
@@ -22,6 +143,7 @@ extern int lineno;
 extern int charno;
 extern char buf[];
 extern char * yytext;
+
 //Yacc Required Function
 void yyerror(const char *s){
    cout << buf << " (" << s  << ')' << endl;
@@ -31,110 +153,198 @@ void yyerror(const char *s){
 #define LNPUTLN(t) {cout << #t << "\n";}
 #define PUTLN(t) {cout << #t <<"\n";}
 #define PUT(t) {cout << #t << " " ;}
+
+
+
+VARBOX * VARBUFFER=nullptr;
+string funcName;
 %}
 
+//Definition of YYTYPE
+%union {
+	int boolean;
+	int integer;
+	double real;
+	char * str;
+	void * voidptr;
+}
+
+//TOKEN DECLARATION
 %token MODULE PROCEDURE
 %token BEG END 
 %token EXIT RETURN
 %token DO LOOP WHILE REPEAT FOR CONTINUE BREAK
 %token CASE IF THEN ELSE  
 %token RECORD TYPE USE
-%token VAR ARRAY BOOLEAN CHAR CONST REAL STRING INTEGER
-%token ID TRUE FALSE STRINGV REALV INTEGERV
-%token PRINT PRINTLN UTIL FN IN READ
+%token VAR BOOLEAN CHAR CONST REAL STRING INTEGER
+%token ARRAY OF
+%token TRUE FALSE <str>STRINGV <real>REALV <integer>INTEGERV
+%token <str>ID INTID REALID BOOLID STRID FUNCID
 %token LT LEQ GT GEQ EQ NEQ
 %token ANDL ORL NOTL
 %token ASSIGN
+%token PRINT PRINTLN UTIL FN IN READ
 
-%union {
-	int boolean;
-	int integer;
-	double real;
-	char * str;
-}
+
+
+
 
 %left ANDL ORL
 %left '+' '-' NOTL
 %left '*' '/' '%'  LT LEQ GT GEQ EQ NEQ
 %nonassoc UNARY
 
-%start  stmts
+%start PROGRAM
+
 %%
-stmts:
-	| stmts boolean_expr ';' { LNPUTLN([boolean_expr]);}
-	| stmts arith_expr ';' { LNPUTLN([arith_expr]);}
-	| stmts int_expr ';' { LNPUTLN([int_expr]);}
-	| stmts assign_expr ';' { LNPUTLN([assign_expr]);}
-	| stmts print_expr ';' { LNPUTLN([print_expr]);}
-	| stmts read_expr ';'
-	| stmts var_sym ';' {LNPUTLN([var_expr]);}
-	;
 
-var_sym:		ID
-			|	var_sym '[' int_expr ']'
+PROGRAM : MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.' {
+	if(strcmp($2,$8)!=0)cout << "Function ERROR" <<endl;
+}
+
+FUNC_DECL : PROCEDURE ID FUNC_ARGS FUNC_RET VAR_CONST_DECL BEGIN STMTS END ID '.' {
+	if()
+}
 
 
-arith_expr :  '(' arith_expr ')'
-			| arith_expr '+' arith_expr { PUT(add);}
-			| arith_expr '-' arith_expr { PUT(minus);}
-			| arith_expr '*' arith_expr { PUT(product);}
-			| arith_expr '/' arith_expr { PUT(divide);}
-			| arith_expr '%' arith_expr { PUT(mod);}
-			| '-' arith_expr %prec UNARY {PUT(unary(-));}
-			| '+' arith_expr %prec UNARY {PUT(unary(+));}
-			| REALV { PUT(realv);}
-			| int_expr
+
+stmt: 
+	|stmt vardecl {cout << "[vardecl]" <<endl;};
+	|stmt constdecl{cout << "[constdecl]" <<endl;};;
+	|stmt EQ EQ {
+		tablePrint();
+	}
+
+test:| 
+	 |test vardecl;
+	 |test EQ EQ {
+	 	tablePrint();
+	 }
+
+
+
+%type <boolean> BOOLV;
+BOOLV:	TRUE {
+			$$ = true;
+		}
+		|FALSE {	
+			$$ = false;
+		}
+
+id_list: 	ID {
+			IDLIST.push_back(string(yytext));
+			}
+		| 	id_list ',' ID {	
+			IDLIST.push_back(string(yytext));
+			}
+		;
+
+id_type: array_indicator type_indicator
+		;
+
+array_indicator:
+				| ARRAY '[' INTEGERV ',' INTEGERV ']' OF {
+					low_range = $3;
+					high_range = $5;
+					isArray = true;
+				}
+				;
+
+type_indicator: {
+					idType = IDUNKNOWN;
+				}
+				| BOOLEAN {
+					idType = IDBOOL;
+				}	
+				| INTEGER {
+					idType = IDINT;
+				}
+				| REAL {
+					idType = IDREAL;
+				}
+				| STRING {
+					idType = IDSTR;
+				}
+				;
+
+
+const_list:
+		  |	const_list ID EQ INTEGERV ';'{
+		  	VARBOX & vb = idInsert($2,IDINT);
+		  	vb.val.integer = $4;
+		  	vb.is_constant = true;
+		  }
+		  |	const_list ID EQ REALV ';'{
+		  	VARBOX& vb = idInsert($2,IDREAL);
+		  	vb.val.real = $4;
+		  	vb.is_constant = true;
+		  }
+		  |	const_list ID EQ STRINGV ';'{
+		  	VARBOX& vb = idInsert($2,IDSTR);
+		  	vb.val.str = $4;
+		  	vb.is_constant = true;
+		  }
+		  |	const_list ID EQ BOOLV ';'{
+		  	VARBOX& vb = idInsert($2,IDBOOL);
+		  	vb.val.boolean = $4;
+		  	vb.is_constant = true;
+		  }
+
+constdecl : CONST ';'
+		  | CONST const_list
+		  ;
+
+//use only with vardecl
+var_list:	id_list id_type {
+				for(int i = 0 ; i < IDLIST.size(); ++i){
+						idInsert(IDLIST[i],idType,isArray,low_range,high_range);
+				}
+				InitDeclAssists();
+			}
 			;
-%type <real> arith_expr;
 
+vardecl: 	VAR ';'
+		|	VAR var_list ';'
+		|	vardecl var_list ';'
+		;
 
-int_expr:	'(' int_expr ')'
-			| int_expr '+' int_expr { PUT(add);}
-			| int_expr '-' int_expr { PUT(minus);}
-			| int_expr '*' int_expr { PUT(product);}
-			| int_expr '/' int_expr { PUT(divide);}
-			| int_expr '%' int_expr { PUT(mod);}
-			| '-' int_expr %prec UNARY {PUT(unary(-));}
-			| '+' int_expr %prec UNARY {PUT(unary(+));}
-			| var_sym
-			| INTEGERV { PUT(intv);}
-			;
-%type <integer> int_expr;
+varstmts :	 
+		|	varstmts vardecl
+		|	varstmts constdecl
+		;
 
+funcdecl: PROCEDURE ID { 
+			funcName = string(yytext);
+		  } funcargs funcrets {
 
-boolean_expr :	'(' boolean_expr ')'
-			|	NOTL boolean_expr {PUT(NOTL);}
-			|	boolean_expr ANDL boolean_expr {PUT(ANDL);}
-			|	boolean_expr ORL boolean_expr {PUT(ORL);}
-			|   arith_expr LT arith_expr {PUT(LT);}
-			|   arith_expr LEQ arith_expr {PUT(LEQ);}
-			|   arith_expr EQ arith_expr {PUT(EQ);}
-			|   arith_expr GEQ arith_expr {PUT(GEQ);}
-			|   arith_expr GT arith_expr {PUT(GT);}
-			|   arith_expr NEQ arith_expr {PUT(NEQ);}
-			|   TRUE {PUT(TRUE);}
-			|   FALSE {PUT(FALSE);}
-			|	var_sym;
-			;
-%type <boolean> boolean_expr;			
+		  } varstmts BEG stmt END ID{
+		  	if(funcName != string(yytext)){
+		  		cout << "ERROR! NOT THE SAME END"<<endl;
+		  	}
+		  } ';' 
+		  ;
 
+funcargs : 
+			| '(' arg_list ')'
+funcrets : 
+		 | ':' id_type
 
-assign_sym:		EQ
-			|	ASSIGN;
+arnmjg_list:
+		| arg_list  ID ':' id_type ',';
 
-assign_expr:	var_sym assign_sym var_sym %prec UNARY {LNPUTLN([id_assign_id])}
-			| 	var_sym assign_sym arith_expr {LNPUTLN([id_assign_arith])}
-			|	var_sym assign_sym boolean_expr {LNPUTLN([id_assign_boolean])}
-			
+argsdecl:
+		|	argsdecl ID ':' INTEGER ','{
 
-print_expr:		PRINT arith_expr
-			|	PRINTLN arith_expr
-			|	PRINT boolean_expr
-			|	PRINTLN boolean_expr
-			|	PRINTLN var_sym
+		}
+		|	argsdecl ID ':' INTEGER ','{
 
-read_expr:	READ var_sym {LNPUTLN(READ);}
+		}
+		|	argsdecl ID ':' INTEGER ','{
 
+		}
+		|	argsdecl ID ':' INTEGER ','{
+
+		}
 
 %%
 int main(int argc,char ** argv )
@@ -148,6 +358,8 @@ int main(int argc,char ** argv )
 		printf("file not found.\n");
 		return -1;
 	} 
+	//Global Symbol Table
+	TABLECHAIN = new TableChain();
 	//Start parsing.
 	yyparse();
 	printf("\n");

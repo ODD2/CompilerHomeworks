@@ -1,6 +1,7 @@
 %{
 #include "y.tab.h"
 #include <stdio.h>
+#include "header.h"
 #define DLIST     {strcat(buf,yytext); charno+=yyleng;}
 #define DPRINT   {printf("%d: %s", lineno++, buf); buf[0] = '\0';charno = 0;}
 #define token(t) {DLIST printf("<%s>\n",t);}
@@ -10,7 +11,7 @@
 #define MAX_LINE_LENG 256
 
 
-
+ enum VARTYPE idFindType(char *,void **);
  //Global Variables
  int lineno = 1;
  int charno = 0;
@@ -58,6 +59,11 @@ bcommente \*\)
 array {
 	DLIST
 	return ARRAY;
+}
+
+of {
+	DLIST
+	return OF;
 }
 
 boolean {
@@ -310,15 +316,36 @@ false {
 {realnum} {
 	DLIST
 	sscanf(yytext,"%lf",&(yylval.real));
-	return REAL;
+	return REALV;
 } 
 
  /* Identifiers */
 {id} {
 	DLIST
-	char * text = (char*)malloc(yyleng);
-	yylval.str = text;
-	return ID;
+	//printf("%s(%d)\n",yytext,idFindType(yytext,&(yylval.voidptr)));
+
+	switch(idFindType(yytext,&(yylval.voidptr))){
+		case IDINT:
+		return INTID;
+		break;
+		case IDREAL:
+		return REALID;
+		break;
+		case IDBOOL:
+		return BOOLID;
+		break;
+		case IDSTR:
+		return STRID;
+		break;
+		case IDFUNC:
+		return FUNCID;
+		break;
+		default:
+		yylval.str = (char*)malloc(yyleng);
+		strcpy(yylval.str,yytext);
+		return ID;
+		break;
+	}
 }
 
  /* Comments */
@@ -349,7 +376,7 @@ false {
  /* Newlines and Spaces */
 \n {
 	DLIST
-	//DPRINT
+	DPRINT
 	//return '\n';
 }
 

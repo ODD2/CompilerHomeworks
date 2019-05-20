@@ -1,5 +1,8 @@
+
+
+
 all: lex.yy.o  y.tab.o
-	g++ -o compiler lex.yy.o y.tab.o -ll
+	g++ -o compiler -std=c11 lex.yy.o y.tab.o -ll
 scanner: lex.yy.o y.tab.o
 	g++ -o scanner lex.yy.o -ll
 
