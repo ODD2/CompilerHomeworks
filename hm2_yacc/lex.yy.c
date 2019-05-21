@@ -565,11 +565,11 @@ static int yy_more_len = 0;
 char *yytext;
 #line 1 "lex.l"
 #line 2 "lex.l"
-#include "y.tab.h"
 #include <stdio.h>
 #include "header.h"
-#define DLIST     {strcat(buf,yytext); charno+=yyleng;}
-#define DPRINT   {printf("%d: %s", lineno++, buf); buf[0] = '\0';charno = 0;}
+#include "y.tab.h"
+#define DLIST     {/*strcat(buf,yytext);*/ printf("%s",yytext); charno+=yyleng;}
+#define DPRINT   {/*printf("%d: %s", lineno++, buf);*/ printf("%d: ",++lineno); buf[0] = '\0';charno = 0;}
 #define token(t) {DLIST printf("<%s>\n",t);}
 #define tokenInteger(t,i) {DLIST printf("<%s:%d>\n",t,i);}
 #define tokenFloat(t,i) {DLIST printf("<%s:%lf>\n",t,i);}
@@ -1296,7 +1296,7 @@ YY_RULE_SETUP
 		unput(c);
 
 
-		yylval.str = token;
+		yylval.token._str = token;
 		return STRINGV;
 	}
 }
@@ -1307,7 +1307,7 @@ YY_RULE_SETUP
 #line 310 "lex.l"
 {
 	DLIST
-	sscanf(yytext,"%d",&(yylval.integer));
+	sscanf(yytext,"%d",&(yylval.token._int));
  	return INTEGERV;
 }
 	YY_BREAK
@@ -1316,7 +1316,7 @@ YY_RULE_SETUP
 #line 316 "lex.l"
 {
 	DLIST
-	sscanf(yytext,"%lf",&(yylval.real));
+	sscanf(yytext,"%lf",&(yylval.token._real));
 	return REALV;
 } 
 	YY_BREAK
@@ -1326,43 +1326,23 @@ YY_RULE_SETUP
 #line 323 "lex.l"
 {
 	DLIST
+	yylval.token._str = (char*)malloc(yyleng+1);
+	strcpy(yylval.token._str,yytext);
+	return ID;
 	//printf("%s(%d)\n",yytext,idFindType(yytext,&(yylval.voidptr)));
-
-	switch(idFindType(yytext,&(yylval.voidptr))){
-		case IDINT:
-		return INTID;
-		break;
-		case IDREAL:
-		return REALID;
-		break;
-		case IDBOOL:
-		return BOOLID;
-		break;
-		case IDSTR:
-		return STRID;
-		break;
-		case IDFUNC:
-		return FUNCID;
-		break;
-		default:
-		yylval.str = (char*)malloc(yyleng);
-		strcpy(yylval.str,yytext);
-		return ID;
-		break;
-	}
 }
 	YY_BREAK
 /* Comments */
 case 54:
 YY_RULE_SETUP
-#line 352 "lex.l"
+#line 332 "lex.l"
 {
 	DLIST
 }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 356 "lex.l"
+#line 336 "lex.l"
 {
 	DLIST
 	BEGIN COMMENT;
@@ -1371,7 +1351,7 @@ YY_RULE_SETUP
 /* COMMENT state actions */
 case 56:
 YY_RULE_SETUP
-#line 362 "lex.l"
+#line 342 "lex.l"
 {
 	DLIST
 	BEGIN INITIAL;
@@ -1379,7 +1359,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 366 "lex.l"
+#line 346 "lex.l"
 {
 	DLIST
 }
@@ -1387,7 +1367,7 @@ YY_RULE_SETUP
 case 58:
 /* rule 58 can match eol */
 YY_RULE_SETUP
-#line 370 "lex.l"
+#line 350 "lex.l"
 {
 	DLIST
 	DPRINT
@@ -1397,7 +1377,7 @@ YY_RULE_SETUP
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 377 "lex.l"
+#line 357 "lex.l"
 {
 	DLIST
 	DPRINT
@@ -1406,13 +1386,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 383 "lex.l"
+#line 363 "lex.l"
 {DLIST}
 	YY_BREAK
 /* ERROR DETECTION */
 case 61:
 YY_RULE_SETUP
-#line 386 "lex.l"
+#line 366 "lex.l"
 {
 	DLIST
 	DPRINT
@@ -1422,10 +1402,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 392 "lex.l"
+#line 372 "lex.l"
 ECHO;
 	YY_BREAK
-#line 1429 "lex.yy.c"
+#line 1409 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -2423,7 +2403,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 392 "lex.l"
+#line 372 "lex.l"
 
 
 //Converts ASCII string into unsigned integer key

@@ -1,9 +1,9 @@
 %{
-#include "y.tab.h"
 #include <stdio.h>
 #include "header.h"
-#define DLIST     {strcat(buf,yytext); charno+=yyleng;}
-#define DPRINT   {printf("%d: %s", lineno++, buf); buf[0] = '\0';charno = 0;}
+#include "y.tab.h"
+#define DLIST     {/*strcat(buf,yytext);*/ printf("%s",yytext); charno+=yyleng;}
+#define DPRINT   {/*printf("%d: %s", lineno++, buf);*/ printf("%d: ",++lineno); buf[0] = '\0';charno = 0;}
 #define token(t) {DLIST printf("<%s>\n",t);}
 #define tokenInteger(t,i) {DLIST printf("<%s:%d>\n",t,i);}
 #define tokenFloat(t,i) {DLIST printf("<%s:%lf>\n",t,i);}
@@ -301,7 +301,7 @@ false {
 		unput(c);
 
 
-		yylval.str = token;
+		yylval.token._str = token;
 		return STRINGV;
 	}
 }
@@ -309,43 +309,23 @@ false {
  /* Numerics */
 {integer} {
 	DLIST
-	sscanf(yytext,"%d",&(yylval.integer));
+	sscanf(yytext,"%d",&(yylval.token._int));
  	return INTEGERV;
 }
 
 {realnum} {
 	DLIST
-	sscanf(yytext,"%lf",&(yylval.real));
+	sscanf(yytext,"%lf",&(yylval.token._real));
 	return REALV;
 } 
 
  /* Identifiers */
 {id} {
 	DLIST
+	yylval.token._str = (char*)malloc(yyleng+1);
+	strcpy(yylval.token._str,yytext);
+	return ID;
 	//printf("%s(%d)\n",yytext,idFindType(yytext,&(yylval.voidptr)));
-
-	switch(idFindType(yytext,&(yylval.voidptr))){
-		case IDINT:
-		return INTID;
-		break;
-		case IDREAL:
-		return REALID;
-		break;
-		case IDBOOL:
-		return BOOLID;
-		break;
-		case IDSTR:
-		return STRID;
-		break;
-		case IDFUNC:
-		return FUNCID;
-		break;
-		default:
-		yylval.str = (char*)malloc(yyleng);
-		strcpy(yylval.str,yytext);
-		return ID;
-		break;
-	}
 }
 
  /* Comments */

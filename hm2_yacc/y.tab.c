@@ -192,11 +192,21 @@
 
 #include <iostream>
 #include <map>
-#include <string>
-#include <stdio.h>
+#include <math.h>
 #include <vector>
+#include <string>
+#include <string.h>
 #include "header.h"
 using namespace std;
+//#define Trail(t) printf("{"t"}");
+
+//Extern Variables.
+extern FILE *yyin;
+extern int lineno;
+extern int charno;
+extern char buf[];
+extern char * yytext;
+
 extern "C"
 {
     int yyparse(void);
@@ -205,140 +215,334 @@ extern "C"
     {
         return 1;
     }
-    VARTYPE idFindType(char * id_name,void ** id_varbox_container );
-}
-
-//IDLIST buffer, Variable Constructions.
-vector<string> IDLIST;
-bool isArray = false;
-int low_range = 0;
-int high_range = 0;
-VARTYPE idType = IDUNKNOWN;
-
-void InitDeclAssists(){
-	isArray = false;
-	low_range = 0;
-	high_range = 0;
-	idType = IDUNKNOWN;
-}
-
-//Symbol Table Dependencies.
-union VARVALUE{
-	int integer;
-	double real;
-	bool boolean;
-	char * str;
-	int * ArgTypeList;
-};
-
-struct VARBOX{
-	VARVALUE val;
-	VARTYPE var_type = VARTYPE::IDUNKNOWN;
-	bool is_array = false;
-	bool is_constant = false;
-	int position = -1;
-};
-
-struct TableChain{
-	TableChain * prev;
-	map<string,VARBOX> ChainTable;
-};
-
-//Symbol Tablechain
-TableChain * TABLECHAIN;
-
-//Symbol Table Manipulations
-bool idFind(string id_name,VARBOX *& id_varbox);
-
-VARTYPE idFindType(char * id_name,void ** id_varbox_container ){
-	VARBOX *& id_varbox = *((VARBOX**)id_varbox_container);
-	if(idFind(id_name,id_varbox)){
-		return id_varbox->var_type;
-	}
-	return VARTYPE::IDUNKNOWN;
-}
-
-bool idFind(string id_name,VARBOX *& id_varbox){
-	// cout << "idFind():\n";
-	TableChain * Cur = TABLECHAIN;
-	do{
-		if(Cur->ChainTable.count(id_name)){
-			id_varbox = &(Cur->ChainTable[id_name]);
-			//cout << "Symbol Found:" << id_name << endl;
-			return true;
-		}
-	}while((Cur = Cur->prev));
-
-	// cout << "Symbol Not Found\n";
-	id_varbox = nullptr;
-	return false;
-}
-
-VARBOX& idInsert(string id_name,VARTYPE id_type,bool array = false,int lr=0,int hr=0){
-	VARBOX& newID = TABLECHAIN->ChainTable[id_name];
-	newID.var_type = id_type;
-	newID.is_array = array;
-	return newID;
-}
-
-///////DISPLAY FUNCTIONS///////
-string typePrint(VARTYPE type){
-	switch(type){
-		case IDINT:
-		return "INT";
-		break;
-		case IDREAL:
-		return "REAL";
-		break;
-		case IDBOOL:
-		return "BOOL";
-		break;
-		case IDSTR:
-		return "STR";
-		break;
-		case IDFUNC:
-		return "FUNC";
-		break;
-		default:
-		return "ID";
-		break;
-	}
-}
-
-void varPrint(const string& name,const VARBOX & variable){
-	cout 	<< "<"<<name 
-			<< ",type:" << typePrint(variable.var_type)
-			<< ",Array:" << (variable.is_array?"yes":"no")
-			<< ",Const:" << (variable.is_constant?"yes":"no")
-			<< ">" <<endl;
-}
-
-void tablePrint(){
-	map<string,VARBOX> & printTable = TABLECHAIN->ChainTable;
-	for(auto it = printTable.begin(),ed = printTable.end();it!=ed;++it){
-		varPrint(it->first,it->second);
-	}
+    //VARTYPE idFindType(char * id_name,void ** id_varbox_container );
 }
 
 
 
-
-
-//Extern Variables.
-extern FILE *yyin;
-extern int lineno;
-extern int charno;
-extern char buf[];
-extern char * yytext;
 //Yacc Required Function
 void yyerror(const char *s){
    cout << buf << " (" << s  << ')' << endl;
 }
 
-
+#define TypeUnmatch(t,y)  "Type Unmatch("+ t + "<>" + t + ")"
 #define LNPUTLN(t) {cout << #t << "\n";}
 #define PUTLN(t) {cout << #t <<"\n";}
 #define PUT(t) {cout << #t << " " ;}
+#define Alert(t) 	{cout << "{!" << (t) << "!}";}
+#define Trail(t)	{cout << " <--{" <<  (t) << "}";}
+#define Error(t)	{ errorMsg +="[Error]"+to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
+#define Warn(t)		{ warnMsg +="[Warning]"+ to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
+
+std::string  errorMsg = "";
+std::string  warnMsg = "";
+
+
+/////////Data Type Definitions/////////
+enum SymbolType {
+	constant,
+	integer,
+	real,
+	boolean,
+	string,
+	array,
+	function,
+	procedure,
+	unknown,
+	none,
+};
+
+enum TokenType{
+	vint,
+	vreal,
+	vbool,
+	vstring,
+	idList,
+	typeList,
+	idType,
+	vunknown,
+};
+
+int Symbol2Token(int symbol){
+	switch(symbol){
+		case SymbolType::integer:
+			return  TokenType::vint;
+		break;
+		case SymbolType::real:
+			return  TokenType::vreal;
+		break;
+		case SymbolType::string:
+			return  TokenType::vstring;
+		break;
+		case SymbolType::boolean:
+			return  TokenType::vbool;
+		break;
+		default:
+			return TokenType::vunknown;
+		break;
+	}
+}
+
+int Token2Symbol(int token){
+	switch(token){
+		case TokenType::vint:
+			return SymbolType::integer;
+		break;
+		case TokenType::vreal : 
+			return SymbolType::real;
+		break;
+		case TokenType::vstring :
+			return SymbolType::string;
+		break;
+		case TokenType::vbool :
+			return SymbolType::boolean;
+		break;
+		default:
+			return SymbolType::unknown;
+		break;
+	}
+}
+
+std::string SymType2Str(int type){
+	switch(type){
+		case SymbolType::constant :
+		return "constant";
+		break;
+		case SymbolType::integer :
+		return "integer";
+		break;
+		case SymbolType::real :
+		return "real";
+		break;
+		case SymbolType::boolean :
+		return "boolean";
+		break;
+		case SymbolType::string :
+		return "string";
+		break;
+		case SymbolType::array :
+		return "array";
+		break;
+		case SymbolType::function :
+		return "function";
+		break;
+		case SymbolType::procedure :
+		return "procedure";
+		break;
+		case SymbolType::none :
+		return "none";
+		break;
+		default:
+		return "unknown";
+		break;
+	}
+}
+
+std::string TokType2Str(int type){
+	switch(type){
+		case TokenType::vint:
+		return "vint";
+		break;
+		case TokenType::vreal:
+		return "vreal";
+		break;
+		case TokenType::vbool:
+		return "vbool";
+		break;
+		case TokenType::vstring:
+		return "vstring";
+		break;
+		case TokenType::idList:
+		return "idList";
+		break;
+		case TokenType::typeList:
+		return "typeList";
+		break;
+		case TokenType::idType:
+		return "idType";
+		break;
+		case TokenType::vunknown:
+		return "vunknown";
+		break;
+	}
+    return "vunknown";;
+}
+
+struct SymbolDesc;
+
+union uDependency{
+	int low;
+	int high;
+	int _int;
+	int baseType;
+	int retType;
+	int argType;
+};
+
+struct SymbolDesc{
+	int symtype;
+	vector<uDependency> symdeps;
+};
+
+
+
+/////////Symbol Table Manipulations////////
+vector< map<std::string,SymbolDesc> > SymTableStack;
+vector<SymbolDesc> FuncStack;
+
+void InitialTableStack(){
+	SymTableStack.push_back(map<std::string,SymbolDesc>());
+}
+
+int GETSCOPERETURN(){
+	if(FuncStack.size()==0){
+		return SymbolType::none;
+	}
+	else {
+		if(FuncStack.back().symtype == SymbolType::procedure){
+			return SymbolType::none;
+		}
+		else
+		{
+			return FuncStack.back().symdeps[0].retType;
+		}
+	}
+}
+
+void ENTERSCOPE(){
+	SymTableStack.push_back(map<std::string,SymbolDesc>());
+}
+
+void LEAVESCOPE(){
+	if(SymTableStack.size() == 0) cout << "Error! SymTableStack.size() = 0" <<endl;
+	else SymTableStack.pop_back();
+}
+
+bool seize(std::string id,SymbolDesc *& sd){
+	for(int i = SymTableStack.size() -1 ; i>=0;--i){
+		if(SymTableStack[i].count(id)){
+			sd = &(SymTableStack[i][id]);
+			return true;
+		}
+	}
+	Error("Symbol: \'" + id + "\',Not Found");
+	return false;
+}
+
+bool seize(std::string id,SymbolDesc & sd){
+	for(int i = SymTableStack.size() -1 ; i>=0;--i){
+		if(SymTableStack[i].count(id)){
+			sd = (SymTableStack[i][id]);
+			return true;
+		}
+	}
+	Error("Symbol:" + id + ",Not Found");
+	return false;
+}
+
+bool inScope(std::string id){
+	if(SymTableStack.back().count(id)){
+		return true;
+	}
+	return false;
+}
+
+bool insert(std::string id,SymbolDesc& sd){
+	if(inScope(id)){
+		Error("\'" + id + "\' duplicated");
+		return false;
+	}
+	SymTableStack.back()[id] = sd;
+	return true;
+}
+
+bool insert(vector<std::string> list,SymbolDesc& sd){
+	bool success = true;
+	for(int i = 0 ; i < list.size() ; ++i){
+		insert(list[i],sd);
+	}
+	return success;
+}
+
+bool matchArgs(vector<int>& list,SymbolDesc & sd){
+	int i = 0;
+	int isfunc = 0;
+	if(sd.symtype == SymbolType::function) isfunc = 1;
+	if(list.size() + isfunc > sd.symdeps.size()){
+		return false;
+	}
+	else{
+		for(i = 0; i < list.size();++i){
+			if(list[i] !=sd.symdeps[i+isfunc].argType) return false;
+		}	
+	}
+	return true;
+}
+
+std::string dumpSd(const SymbolDesc & sd){
+	std::string ret;
+	ret += "{" + SymType2Str(sd.symtype);
+	if(sd.symtype == SymbolType::array){
+		ret += "," + SymType2Str(sd.symdeps[0].argType);
+		ret += "," + to_string(sd.symdeps[1].low); //low range
+		ret += "," + to_string(sd.symdeps[2].high); //high range
+	}
+	else if(sd.symtype == SymbolType::constant){
+		ret +="," + SymType2Str(sd.symdeps[0].baseType);
+	}
+	else if (sd.symtype == SymbolType::function){
+		ret += "," + SymType2Str(sd.symdeps[0].retType);
+		ret += ",(";
+		for(int j = 1, jl = sd.symdeps.size() ; j < jl ;++j){
+			ret += SymType2Str(sd.symdeps[j].argType);
+			if(j != jl-1) ret += ",";
+		}
+		ret += ")";
+	}
+	else if (sd.symtype == SymbolType::procedure){
+		ret +=",(";
+		for(int j = 0, jl = sd.symdeps.size() ; j < jl ;++j){
+			ret +=SymType2Str(sd.symdeps[j].argType);
+			if(j != jl-1) ret +=",";
+		}
+		ret +=")";
+	}
+	ret +="}";
+	return ret;
+}
+
+std::string dumpVar(std::string id){
+	SymbolDesc  sd;
+	std::string ret;
+	if(seize(id, sd)){
+		ret = "<" + id + "," + dumpSd(sd) + ">";
+	}
+	else {
+		ret = " ";
+	}
+	return ret;
+}
+
+void dump(){
+	cout << endl;
+	for(int i = 0 ; i < SymTableStack.size();++i){
+		cout << "SCOPE(" << i << "):" <<endl;
+		for(auto it = SymTableStack[i].begin(),ed = SymTableStack[i].end();
+			it!=ed;
+			++it){
+			cout << "<" << it->first << ","; dumpSd(it->second); cout << ">\n";
+		}
+	}
+	cout << endl;
+}
+/////////HELPER FUNCTIONS///////////
+void dumpIDLIST(vector<std::string> * list){
+	cout << "[ ";
+	for(auto it = list->begin(),ed=list->end();it!=ed;++it){
+		cout << (*it) << " "	;
+	}
+	cout << "]";
+}
 
 
 
@@ -365,17 +569,12 @@ void yyerror(const char *s){
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 158 "hw2.yacc"
+#line 362 "hw2.yacc"
 {
-	int boolean;
-	int integer;
-	double real;
-	char * str;
-	void * voidptr;
-	VARTYPE vartype;
+	TOKEN token;
 }
 /* Line 193 of yacc.c.  */
-#line 379 "y.tab.c"
+#line 578 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -388,7 +587,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 392 "y.tab.c"
+#line 591 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -601,18 +800,18 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  2
+#define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   47
+#define YYLAST   387
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  73
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  11
+#define YYNNTS  18
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  28
+#define YYNRULES  74
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  46
+#define YYNSTATES  178
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -628,12 +827,12 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,    63,     2,     2,
-      70,    71,    61,    59,    66,    60,    65,    62,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    72,    69,
+      71,    72,    61,    59,    68,    60,    65,    62,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    67,    66,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    67,     2,    68,     2,     2,     2,     2,     2,     2,
+       2,    69,     2,    70,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -661,33 +860,65 @@ static const yytype_uint8 yytranslate[] =
 #if YYDEBUG
 /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
    YYRHS.  */
-static const yytype_uint8 yyprhs[] =
+static const yytype_uint16 yyprhs[] =
 {
-       0,     0,     3,     4,     7,    10,    14,    16,    18,    20,
-      24,    27,    28,    36,    37,    39,    41,    43,    45,    46,
-      52,    58,    64,    70,    73,    76,    79,    82,    86
+       0,     0,     3,    13,    14,    17,    20,    23,    29,    35,
+      37,    41,    50,    52,    54,    56,    58,    60,    63,    69,
+      75,    77,    79,    81,    83,    85,    86,    87,    88,   102,
+     103,   107,   111,   117,   118,   121,   122,   128,   134,   143,
+     152,   157,   162,   167,   171,   176,   188,   198,   208,   215,
+     219,   221,   225,   229,   233,   237,   241,   245,   248,   252,
+     256,   260,   264,   268,   272,   276,   280,   283,   288,   293,
+     295,   297,   299,   301,   303
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      74,     0,    -1,    -1,    74,    83,    -1,    74,    81,    -1,
-      74,    47,    47,    -1,    32,    -1,    33,    -1,    37,    -1,
-      76,    66,    37,    -1,    78,    79,    -1,    -1,    30,    67,
-      36,    66,    36,    68,    31,    -1,    -1,    24,    -1,    29,
-      -1,    27,    -1,    28,    -1,    -1,    80,    37,    47,    36,
-      69,    -1,    80,    37,    47,    35,    69,    -1,    80,    37,
-      47,    34,    69,    -1,    80,    37,    47,    75,    69,    -1,
-      26,    69,    -1,    26,    80,    -1,    76,    77,    -1,    23,
-      69,    -1,    23,    82,    69,    -1,    83,    82,    69,    -1
+      74,     0,    -1,     3,    37,    75,    82,     5,    88,     6,
+      37,    65,    -1,    -1,    75,    76,    -1,    75,    80,    -1,
+      23,    66,    -1,    23,    77,    67,    78,    66,    -1,    76,
+      77,    67,    78,    66,    -1,    37,    -1,    77,    68,    37,
+      -1,    30,    69,    36,    68,    36,    70,    31,    79,    -1,
+      79,    -1,    24,    -1,    29,    -1,    27,    -1,    28,    -1,
+      26,    66,    -1,    26,    37,    47,    81,    66,    -1,    80,
+      37,    47,    81,    66,    -1,    36,    -1,    35,    -1,    32,
+      -1,    33,    -1,    34,    -1,    -1,    -1,    -1,    82,    83,
+       4,    37,    85,    87,    84,    75,     5,    88,     6,    37,
+      66,    -1,    -1,    71,    86,    72,    -1,    37,    67,    78,
+      -1,    86,    68,    37,    67,    78,    -1,    -1,    67,    78,
+      -1,    -1,    88,    37,    52,    90,    66,    -1,    88,    37,
+      47,    90,    66,    -1,    88,    37,    69,    90,    70,    52,
+      90,    66,    -1,    88,    37,    69,    90,    70,    47,    90,
+      66,    -1,    88,    53,    90,    66,    -1,    88,    54,    90,
+      66,    -1,    88,    58,    37,    66,    -1,    88,     8,    66,
+      -1,    88,     8,    90,    66,    -1,    88,    17,    71,    90,
+      72,    18,    88,    19,    88,     6,    66,    -1,    88,    17,
+      71,    90,    72,    18,    88,     6,    66,    -1,    88,    11,
+      71,    90,    72,     9,    88,     6,    66,    -1,    88,    37,
+      71,    89,    72,    66,    -1,    88,    37,    66,    -1,    90,
+      -1,    89,    68,    90,    -1,    90,    59,    90,    -1,    90,
+      60,    90,    -1,    90,    61,    90,    -1,    90,    62,    90,
+      -1,    90,    63,    90,    -1,    60,    90,    -1,    90,    43,
+      90,    -1,    90,    44,    90,    -1,    90,    47,    90,    -1,
+      90,    46,    90,    -1,    90,    45,    90,    -1,    90,    48,
+      90,    -1,    90,    49,    90,    -1,    90,    50,    90,    -1,
+      51,    90,    -1,    37,    69,    90,    70,    -1,    37,    71,
+      89,    72,    -1,    37,    -1,    36,    -1,    35,    -1,    32,
+      -1,    33,    -1,    34,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   196,   201,   202,   203,   204,   217,   220,   224,   227,
-     232,   235,   236,   243,   246,   249,   252,   255,   261,   262,
-     267,   272,   277,   283,   284,   288,   296,   297,   298
+       0,   406,   406,   422,   423,   424,   427,   428,   435,   444,
+     448,   454,   464,   472,   475,   478,   481,   486,   487,   499,
+     516,   520,   524,   528,   532,   539,   540,   543,   540,   589,
+     593,   599,   612,   624,   628,   634,   635,   649,   667,   686,
+     705,   708,   711,   714,   720,   729,   735,   741,   747,   766,
+     781,   787,   794,   816,   838,   860,   882,   904,   918,   937,
+     956,   983,  1002,  1021,  1048,  1059,  1070,  1081,  1098,  1116,
+    1126,  1130,  1134,  1138,  1142
 };
 #endif
 
@@ -703,10 +934,11 @@ static const char *const yytname[] =
   "TRUE", "FALSE", "STRINGV", "REALV", "INTEGERV", "ID", "INTID", "REALID",
   "BOOLID", "STRID", "FUNCID", "LT", "LEQ", "GT", "GEQ", "EQ", "NEQ",
   "ANDL", "ORL", "NOTL", "ASSIGN", "PRINT", "PRINTLN", "UTIL", "FN", "IN",
-  "READ", "'+'", "'-'", "'*'", "'/'", "'%'", "UNARY", "'.'", "','", "'['",
-  "']'", "';'", "'('", "')'", "':'", "$accept", "stmt", "BOOLV", "id_list",
-  "id_type", "array_indicator", "type_indicator", "const_list",
-  "constdecl", "var_list", "vardecl", 0
+  "READ", "'+'", "'-'", "'*'", "'/'", "'%'", "UNARY", "'.'", "';'", "':'",
+  "','", "'['", "']'", "'('", "')'", "$accept", "PROGRAM",
+  "VAR_CONST_DECL", "VAR_DECL", "ID_LIST", "ID_TYPE", "BASIC_TYPES",
+  "CONST_DECL", "VALUES", "FUNC_DECL", "@1", "@2", "FUNC_ARGS",
+  "FUNC_VARS", "FUNC_RET", "STMTS", "ARG_LIST", "EXPR", 0
 };
 #endif
 
@@ -721,25 +953,35 @@ static const yytype_uint16 yytoknum[] =
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
      305,   306,   307,   308,   309,   310,   311,   312,   313,    43,
-      45,    42,    47,    37,   314,    46,    44,    91,    93,    59,
-      40,    41,    58
+      45,    42,    47,    37,   314,    46,    59,    58,    44,    91,
+      93,    40,    41
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    73,    74,    74,    74,    74,    75,    75,    76,    76,
-      77,    78,    78,    79,    79,    79,    79,    79,    80,    80,
-      80,    80,    80,    81,    81,    82,    83,    83,    83
+       0,    73,    74,    75,    75,    75,    76,    76,    76,    77,
+      77,    78,    78,    79,    79,    79,    79,    80,    80,    80,
+      81,    81,    81,    81,    81,    82,    83,    84,    82,    85,
+      85,    86,    86,    87,    87,    88,    88,    88,    88,    88,
+      88,    88,    88,    88,    88,    88,    88,    88,    88,    88,
+      89,    89,    90,    90,    90,    90,    90,    90,    90,    90,
+      90,    90,    90,    90,    90,    90,    90,    90,    90,    90,
+      90,    90,    90,    90,    90
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0,     2,     2,     3,     1,     1,     1,     3,
-       2,     0,     7,     0,     1,     1,     1,     1,     0,     5,
-       5,     5,     5,     2,     2,     2,     2,     3,     3
+       0,     2,     9,     0,     2,     2,     2,     5,     5,     1,
+       3,     8,     1,     1,     1,     1,     1,     2,     5,     5,
+       1,     1,     1,     1,     1,     0,     0,     0,    13,     0,
+       3,     3,     5,     0,     2,     0,     5,     5,     8,     8,
+       4,     4,     4,     3,     4,    11,     9,     9,     6,     3,
+       1,     3,     3,     3,     3,     3,     3,     2,     3,     3,
+       3,     3,     3,     3,     3,     3,     2,     4,     4,     1,
+       1,     1,     1,     1,     1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -747,37 +989,63 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,    18,     0,     4,     3,     8,    26,
-      11,     0,    23,    24,     5,     0,     0,     0,    25,    13,
-      27,     0,    28,     0,     9,    14,    16,    17,    15,    10,
-       0,     0,     6,     7,     0,     0,     0,     0,     0,    21,
-      20,    19,    22,     0,     0,    12
+       0,     0,     0,     3,     1,    25,     0,     0,     4,     5,
+      26,     9,     6,     0,     0,    17,     0,     0,    35,     0,
+       0,     0,     0,     0,     0,     0,     0,    13,    15,    16,
+      14,     0,     0,    12,    10,    22,    23,    24,    21,    20,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    29,     0,     7,    18,     8,    19,     0,    72,    73,
+      74,    71,    70,    69,     0,     0,    43,     0,     0,     0,
+       0,     0,    49,     0,     0,     0,     0,     0,     0,    33,
+       0,     2,     0,     0,    66,    57,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    44,
+       0,     0,     0,     0,     0,     0,    50,    40,    41,    42,
+       0,     0,     0,    27,     0,     0,     0,    58,    59,    62,
+      61,    60,    63,    64,    65,    52,    53,    54,    55,    56,
+       0,     0,    37,    36,     0,     0,     0,     0,     0,    30,
+      34,     3,     0,    67,    68,    35,    35,     0,     0,    51,
+      48,    31,     0,     0,     0,     0,     0,     0,     0,     0,
+      35,     0,     0,     0,    35,    39,    38,    32,     0,    11,
+      47,    46,     0,     0,     0,     0,    45,    28
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_int16 yydefgoto[] =
 {
-      -1,     1,    37,    10,    18,    19,    29,    13,     6,    11,
-       7
+      -1,     2,     5,     8,    13,    32,    33,     9,    40,    10,
+      19,   141,    79,   111,   113,    25,   105,   106
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -66
-static const yytype_int8 yypact[] =
+#define YYPACT_NINF -60
+static const yytype_int16 yypact[] =
 {
-     -66,     0,   -66,   -35,   -65,   -42,   -66,   -22,   -66,   -66,
-     -29,   -55,   -66,   -20,   -66,   -53,   -49,   -18,   -66,   -21,
-     -66,   -27,   -66,   -15,   -66,   -66,   -66,   -66,   -66,   -66,
-     -23,   -44,   -66,   -66,   -45,   -41,   -40,   -39,   -11,   -66,
-     -66,   -66,   -66,   -37,    -4,   -66
+      21,    19,    37,   -60,   -60,    12,   -34,   -33,    20,    28,
+      73,   -60,   -60,   -59,    11,   -60,   -52,    32,   -60,    79,
+     -17,    48,   163,   -17,   163,    53,    51,   -60,   -60,   -60,
+     -60,    17,    25,   -60,   -60,   -60,   -60,   -60,   -60,   -60,
+      29,    43,    44,    57,    90,    27,    41,    49,   155,   155,
+      66,    60,    83,   -60,   -60,   -60,   -60,    70,   -60,   -60,
+     -60,   -60,   -60,     4,   155,   155,   -60,   220,   155,   155,
+     155,   155,   -60,   155,   155,   228,   252,    71,   101,    72,
+      74,   -60,   155,   155,   -60,   -60,   155,   155,   155,   155,
+     155,   155,   155,   155,   155,   155,   155,   155,   155,   -60,
+     114,   122,   260,   284,   164,    -6,   324,   -60,   -60,   -60,
+      81,    -5,   -17,   -60,   104,   192,     0,   -60,   -60,   -60,
+     -60,   -60,   -60,   157,   157,   185,   185,   -60,   -60,   -60,
+     134,   128,   -60,   -60,   -11,   155,    86,   -17,   116,   -60,
+     -60,   -60,    84,   -60,   -60,   -60,   -60,   155,   155,   324,
+     -60,   -60,    88,    -3,   147,    63,    23,   292,   316,   -17,
+     -60,   -10,   113,   127,   -60,   -60,   -60,   -60,    76,   -60,
+     -60,   -60,    91,   143,   156,   177,   -60,   -60
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int8 yypgoto[] =
+static const yytype_int16 yypgoto[] =
 {
-     -66,   -66,   -66,   -66,   -66,   -66,   -66,   -66,   -66,    25,
-     -66
+     -60,   -60,    80,   -60,   236,   -23,    89,   -60,   221,   -60,
+     -60,   -60,   -60,   -60,   -60,   -13,   166,   -43
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -787,31 +1055,112 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-       2,    16,     8,    25,    12,    14,    26,    27,    28,    32,
-      33,    34,    35,    36,    20,     8,    22,    21,    23,    24,
-      30,    31,    38,     3,    39,    43,     4,    45,    40,    41,
-      42,    44,    15,     0,     9,     0,     0,    17,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     5
+      41,    67,   160,    11,    14,    75,    76,    27,    20,    21,
+      28,    29,    30,    31,    27,    23,    21,    28,    29,    30,
+       6,    84,    85,     7,     1,   100,   101,   102,   103,   163,
+     104,    44,    12,    15,    45,     6,   147,     4,     7,   115,
+      46,   148,   164,   117,   118,   119,   120,   121,   122,   123,
+     124,   125,   126,   127,   128,   129,     3,    11,    22,    43,
+      47,    44,   135,   138,    45,    17,   136,   139,   135,   162,
+      46,    44,   144,    82,    45,    83,    48,    49,    18,    24,
+      46,    50,   173,    26,    44,    34,    52,    45,    51,   140,
+      47,    53,   149,    46,    57,    54,    70,   174,    68,    44,
+      47,    71,    45,    77,   157,   158,    48,    49,    46,    55,
+      56,    50,    69,    47,   151,    72,    48,    49,    73,    80,
+      74,    50,    58,    59,    60,    61,    62,    63,    47,    48,
+      49,    78,   155,   156,    50,    81,   167,   109,   110,   112,
+     142,    64,   114,   145,    48,    49,   146,   168,   137,    50,
+      65,   172,   150,   152,   154,   159,    66,    86,    87,    88,
+      89,    90,    91,    92,    93,    86,    87,    88,    89,    90,
+      91,    92,    93,    94,    95,    96,    97,    98,   161,   170,
+     175,    94,    95,    96,    97,    98,   130,    58,    59,    60,
+      61,    62,    63,   171,   131,    35,    36,    37,    38,    39,
+      86,    87,    88,    89,    90,    91,    64,    86,    87,    88,
+      89,    90,    91,    92,    93,    65,    94,    95,    96,    97,
+      98,   153,   176,    94,    95,    96,    97,    98,    86,    87,
+      88,    89,    90,    91,   134,    86,    87,    88,    89,    90,
+      91,    92,    93,   177,    16,    42,    96,    97,    98,   116,
+     169,    94,    95,    96,    97,    98,     0,     0,     0,     0,
+       0,     0,   143,    86,    87,    88,    89,    90,    91,    92,
+      93,    86,    87,    88,    89,    90,    91,    92,    93,    94,
+      95,    96,    97,    98,     0,     0,    99,    94,    95,    96,
+      97,    98,     0,     0,   107,    86,    87,    88,    89,    90,
+      91,    92,    93,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    98,     0,     0,   108,    94,
+      95,    96,    97,    98,     0,     0,   132,    86,    87,    88,
+      89,    90,    91,    92,    93,    86,    87,    88,    89,    90,
+      91,    92,    93,    94,    95,    96,    97,    98,     0,     0,
+     133,    94,    95,    96,    97,    98,     0,     0,   165,    86,
+      87,    88,    89,    90,    91,    92,    93,    86,    87,    88,
+      89,    90,    91,    92,    93,    94,    95,    96,    97,    98,
+       0,     0,   166,    94,    95,    96,    97,    98
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-       0,    30,    37,    24,    69,    47,    27,    28,    29,    32,
-      33,    34,    35,    36,    69,    37,    69,    37,    67,    37,
-      47,    36,    66,    23,    69,    36,    26,    31,    69,    69,
-      69,    68,     7,    -1,    69,    -1,    -1,    66,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    47
+      23,    44,     5,    37,    37,    48,    49,    24,    67,    68,
+      27,    28,    29,    30,    24,    67,    68,    27,    28,    29,
+      23,    64,    65,    26,     3,    68,    69,    70,    71,     6,
+      73,     8,    66,    66,    11,    23,    47,     0,    26,    82,
+      17,    52,    19,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    98,    37,    37,    47,     6,
+      37,     8,    68,    68,    11,    37,    72,    72,    68,     6,
+      17,     8,    72,    69,    11,    71,    53,    54,     5,    47,
+      17,    58,     6,     4,     8,    37,    69,    11,    37,   112,
+      37,    66,   135,    17,    37,    66,    47,     6,    71,     8,
+      37,    52,    11,    37,   147,   148,    53,    54,    17,    66,
+      66,    58,    71,    37,   137,    66,    53,    54,    69,    36,
+      71,    58,    32,    33,    34,    35,    36,    37,    37,    53,
+      54,    71,   145,   146,    58,    65,   159,    66,    37,    67,
+      36,    51,    68,     9,    53,    54,    18,   160,    67,    58,
+      60,   164,    66,    37,    70,    67,    66,    43,    44,    45,
+      46,    47,    48,    49,    50,    43,    44,    45,    46,    47,
+      48,    49,    50,    59,    60,    61,    62,    63,    31,    66,
+      37,    59,    60,    61,    62,    63,    72,    32,    33,    34,
+      35,    36,    37,    66,    72,    32,    33,    34,    35,    36,
+      43,    44,    45,    46,    47,    48,    51,    43,    44,    45,
+      46,    47,    48,    49,    50,    60,    59,    60,    61,    62,
+      63,   141,    66,    59,    60,    61,    62,    63,    43,    44,
+      45,    46,    47,    48,    70,    43,    44,    45,    46,    47,
+      48,    49,    50,    66,     8,    24,    61,    62,    63,    83,
+     161,    59,    60,    61,    62,    63,    -1,    -1,    -1,    -1,
+      -1,    -1,    70,    43,    44,    45,    46,    47,    48,    49,
+      50,    43,    44,    45,    46,    47,    48,    49,    50,    59,
+      60,    61,    62,    63,    -1,    -1,    66,    59,    60,    61,
+      62,    63,    -1,    -1,    66,    43,    44,    45,    46,    47,
+      48,    49,    50,    43,    44,    45,    46,    47,    48,    49,
+      50,    59,    60,    61,    62,    63,    -1,    -1,    66,    59,
+      60,    61,    62,    63,    -1,    -1,    66,    43,    44,    45,
+      46,    47,    48,    49,    50,    43,    44,    45,    46,    47,
+      48,    49,    50,    59,    60,    61,    62,    63,    -1,    -1,
+      66,    59,    60,    61,    62,    63,    -1,    -1,    66,    43,
+      44,    45,    46,    47,    48,    49,    50,    43,    44,    45,
+      46,    47,    48,    49,    50,    59,    60,    61,    62,    63,
+      -1,    -1,    66,    59,    60,    61,    62,    63
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    74,     0,    23,    26,    47,    81,    83,    37,    69,
-      76,    82,    69,    80,    47,    82,    30,    66,    77,    78,
-      69,    37,    69,    67,    37,    24,    27,    28,    29,    79,
-      47,    36,    32,    33,    34,    35,    36,    75,    66,    69,
-      69,    69,    69,    36,    68,    31
+       0,     3,    74,    37,     0,    75,    23,    26,    76,    80,
+      82,    37,    66,    77,    37,    66,    77,    37,     5,    83,
+      67,    68,    47,    67,    47,    88,     4,    24,    27,    28,
+      29,    30,    78,    79,    37,    32,    33,    34,    35,    36,
+      81,    78,    81,     6,     8,    11,    17,    37,    53,    54,
+      58,    37,    69,    66,    66,    66,    66,    37,    32,    33,
+      34,    35,    36,    37,    51,    60,    66,    90,    71,    71,
+      47,    52,    66,    69,    71,    90,    90,    37,    71,    85,
+      36,    65,    69,    71,    90,    90,    43,    44,    45,    46,
+      47,    48,    49,    50,    59,    60,    61,    62,    63,    66,
+      90,    90,    90,    90,    90,    89,    90,    66,    66,    66,
+      37,    86,    67,    87,    68,    90,    89,    90,    90,    90,
+      90,    90,    90,    90,    90,    90,    90,    90,    90,    90,
+      72,    72,    66,    66,    70,    68,    72,    67,    68,    72,
+      78,    84,    36,    70,    72,     9,    18,    47,    52,    90,
+      66,    78,    37,    75,    70,    88,    88,    90,    90,    67,
+       5,    31,     6,     6,    19,    66,    66,    78,    88,    79,
+      66,    66,    88,     6,     6,    37,    66,    66
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1625,144 +1974,982 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 3:
-#line 202 "hw2.yacc"
-    {cout << "[vardecl]" <<endl;}
-    break;
-
-  case 4:
-#line 203 "hw2.yacc"
-    {cout << "[constdecl]" <<endl;}
-    break;
-
-  case 5:
-#line 204 "hw2.yacc"
+        case 2:
+#line 410 "hw2.yacc"
     {
-		tablePrint();
-	}
+ 				Trail("Program Declaration");
+ 				
+ 				char * name1 = (yyvsp[(2) - (9)].token)._str, * name2 = (yyvsp[(8) - (9)].token)._str; 
+ 				if(strcmp(name1,name2)!=0){
+ 					Error("Module: begin ID != end ID");
+ 				}
+ 				delete name1,name2;
+			}
     break;
 
   case 6:
-#line 217 "hw2.yacc"
-    {
-			(yyval.boolean) = true;
-		}
+#line 427 "hw2.yacc"
+    { Trail("Var Declare"); }
     break;
 
   case 7:
-#line 220 "hw2.yacc"
-    {	
-			(yyval.boolean) = false;
+#line 428 "hw2.yacc"
+    { 
+			auto idlist = (vector<std::string>*)(yyvsp[(2) - (5)].token)._ptr;
+			auto sd = (SymbolDesc *)(yyvsp[(4) - (5)].token)._ptr;
+			insert(*idlist,*sd);
+			Trail("Var Declare"); 
+			delete idlist,sd;
 		}
     break;
 
   case 8:
-#line 224 "hw2.yacc"
+#line 435 "hw2.yacc"
     {
-			IDLIST.push_back(string(yytext));
-			}
+			auto idlist = (vector<std::string>*)(yyvsp[(2) - (5)].token)._ptr;
+			auto sd = (SymbolDesc *)(yyvsp[(4) - (5)].token)._ptr;
+			insert(*idlist,*sd);
+			Trail("Var Declare"); 
+			delete idlist,sd;
+		}
     break;
 
   case 9:
-#line 227 "hw2.yacc"
-    {	
-			IDLIST.push_back(string(yytext));
-			}
+#line 444 "hw2.yacc"
+    {
+			(yyval.token)._ptr = new vector<std::string>();
+			((vector<std::string>*)(yyval.token)._ptr)->push_back(std::string((yyvsp[(1) - (1)].token)._str));
+		}
+    break;
+
+  case 10:
+#line 448 "hw2.yacc"
+    {
+			(yyval.token) = (yyvsp[(1) - (3)].token);
+			((vector<std::string>*)(yyval.token)._ptr)->push_back(std::string((yyvsp[(3) - (3)].token)._str));
+		}
+    break;
+
+  case 11:
+#line 454 "hw2.yacc"
+    {
+			SymbolDesc * sd = new SymbolDesc();
+			(yyval.token).type = TokenType::idType;
+			(yyval.token)._ptr = sd;
+			uDependency dp;
+			sd->symtype =  SymbolType::array;
+			dp.baseType = (yyvsp[(8) - (8)].token)._int; sd->symdeps.push_back(dp);
+			dp.low = (yyvsp[(3) - (8)].token)._int; sd->symdeps.push_back(dp);
+			dp.high = (yyvsp[(5) - (8)].token)._int; sd->symdeps.push_back(dp);	
+		}
     break;
 
   case 12:
-#line 236 "hw2.yacc"
+#line 464 "hw2.yacc"
     {
-					low_range = (yyvsp[(3) - (7)].integer);
-					high_range = (yyvsp[(5) - (7)].integer);
-					isArray = true;
-				}
+			SymbolDesc * sd = new SymbolDesc();
+			(yyval.token).type = TokenType::idType;
+			(yyval.token)._ptr = sd;
+			sd->symtype = (yyvsp[(1) - (1)].token)._int;
+		}
     break;
 
   case 13:
-#line 243 "hw2.yacc"
+#line 472 "hw2.yacc"
     {
-					idType = IDUNKNOWN;
-				}
+				(yyval.token)._int = SymbolType::boolean;
+			}
     break;
 
   case 14:
-#line 246 "hw2.yacc"
+#line 475 "hw2.yacc"
     {
-					idType = IDBOOL;
-				}
+				(yyval.token)._int = SymbolType::integer;
+			}
     break;
 
   case 15:
-#line 249 "hw2.yacc"
+#line 478 "hw2.yacc"
     {
-					idType = IDINT;
-				}
+				(yyval.token)._int = SymbolType::real;
+			}
     break;
 
   case 16:
-#line 252 "hw2.yacc"
+#line 481 "hw2.yacc"
     {
-					idType = IDREAL;
-				}
+				(yyval.token)._int = SymbolType::string;
+			}
     break;
 
   case 17:
-#line 255 "hw2.yacc"
-    {
-					idType = IDSTR;
-				}
+#line 486 "hw2.yacc"
+    { Trail("Const Declare"); }
+    break;
+
+  case 18:
+#line 487 "hw2.yacc"
+    { 
+				char * name = (yyvsp[(2) - (5)].token)._str;
+				SymbolDesc sd;
+				sd.symtype = SymbolType::constant;
+				uDependency dp;
+				dp.baseType = Token2Symbol((yyvsp[(4) - (5)].token).type);
+				sd.symdeps.push_back(dp);
+
+				insert(std::string(name),sd);
+				Trail("Const Declare");
+				delete name;
+			 }
     break;
 
   case 19:
-#line 262 "hw2.yacc"
+#line 499 "hw2.yacc"
     {
-		  	VARBOX & vb = idInsert((yyvsp[(2) - (5)].str),IDINT);
-		  	vb.val.integer = (yyvsp[(4) - (5)].integer);
-		  	vb.is_constant = true;
-		  }
+				char * name = (yyvsp[(2) - (5)].token)._str; 
+				SymbolDesc sd;
+				sd.symtype = SymbolType::constant;
+				uDependency dp;
+				dp.baseType = Token2Symbol((yyvsp[(4) - (5)].token).type);
+				sd.symdeps.push_back(dp);
+
+				insert(std::string(name),sd);
+				Trail("Const Declare");
+				delete name;
+				if(dp.baseType == SymbolType::string)delete (yyvsp[(4) - (5)].token)._str;
+			 }
     break;
 
   case 20:
-#line 267 "hw2.yacc"
+#line 516 "hw2.yacc"
     {
-		  	VARBOX& vb = idInsert((yyvsp[(2) - (5)].str),IDREAL);
-		  	vb.val.real = (yyvsp[(4) - (5)].real);
-		  	vb.is_constant = true;
-		  }
+		(yyval.token) = (yyvsp[(1) - (1)].token);
+		(yyval.token).type = TokenType::vint;
+	}
     break;
 
   case 21:
-#line 272 "hw2.yacc"
+#line 520 "hw2.yacc"
     {
-		  	VARBOX& vb = idInsert((yyvsp[(2) - (5)].str),IDSTR);
-		  	vb.val.str = (yyvsp[(4) - (5)].str);
-		  	vb.is_constant = true;
-		  }
+		(yyval.token) = (yyvsp[(1) - (1)].token);
+		(yyval.token).type = TokenType::vreal;
+	}
     break;
 
   case 22:
-#line 277 "hw2.yacc"
+#line 524 "hw2.yacc"
     {
-		  	VARBOX& vb = idInsert((yyvsp[(2) - (5)].str),IDBOOL);
-		  	vb.val.boolean = (yyvsp[(4) - (5)].boolean);
-		  	vb.is_constant = true;
-		  }
+		(yyval.token) = (yyvsp[(1) - (1)].token);
+		(yyval.token).type = TokenType::vbool;
+	}
     break;
 
-  case 25:
-#line 288 "hw2.yacc"
+  case 23:
+#line 528 "hw2.yacc"
     {
-				for(int i = 0 ; i < IDLIST.size(); ++i){
-						idInsert(IDLIST[i],idType,isArray,low_range,high_range);
+		(yyval.token) = (yyvsp[(1) - (1)].token);
+		(yyval.token).type = TokenType::vbool;
+	}
+    break;
+
+  case 24:
+#line 532 "hw2.yacc"
+    {
+		(yyval.token) = (yyvsp[(1) - (1)].token);
+		(yyval.token).type = TokenType::vstring;
+	}
+    break;
+
+  case 26:
+#line 540 "hw2.yacc"
+    {
+		ENTERSCOPE();
+	}
+    break;
+
+  case 27:
+#line 543 "hw2.yacc"
+    {
+		//char * name1 = $4._str
+		SymbolDesc * retype = (SymbolDesc*)(yyvsp[(6) - (6)].token)._ptr; 
+		//Create Function Symbol;
+		SymbolDesc sd; 
+		sd.symtype = SymbolType::procedure;
+		uDependency dep;
+		if(retype != nullptr){
+			sd.symtype = SymbolType::function;
+			dep.retType = retype->symtype;
+			sd.symdeps.push_back(dep);
+			delete retype;
+		}
+		FuncStack.push_back(sd);
+	}
+    break;
+
+  case 28:
+#line 559 "hw2.yacc"
+    {
+		char * name1 = (yyvsp[(4) - (13)].token)._str, * name2 = (yyvsp[(12) - (13)].token)._str;
+		//SymbolDesc * retype = (SymbolDesc*)$6._ptr; 
+		vector<int> * list =(vector<int> *)(yyvsp[(5) - (13)].token)._ptr;
+		if(std::string(name1)!=std::string(name2)){
+			Error("Function ID Unmatch");
+		}
+		else{
+
+			//Print For Debug;
+			//dump();
+			LEAVESCOPE();
+			
+			SymbolDesc sd = FuncStack.back(); 
+			FuncStack.pop_back();
+			if(list !=nullptr ) {
+				uDependency dep;
+				for(int i = 0 ; i < list->size(); ++i){
+					dep.argType = (*list)[i];
+					sd.symdeps.push_back(dep);
 				}
-				InitDeclAssists();
 			}
+			//Create Function Symbol;
+			insert(std::string(name1),sd);
+			
+			Trail( dumpVar(name1) + "Function Declare");
+		}
+		delete name1,name2,list;
+	}
+    break;
+
+  case 29:
+#line 589 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::typeList;
+		(yyval.token)._ptr = nullptr;
+	}
+    break;
+
+  case 30:
+#line 593 "hw2.yacc"
+    {
+		(yyval.token) = (yyvsp[(2) - (3)].token);
+	 // Trail("Function Variables");
+	}
+    break;
+
+  case 31:
+#line 599 "hw2.yacc"
+    {
+		char * name = (yyvsp[(1) - (3)].token)._str;
+		SymbolDesc * sd = (SymbolDesc*)(yyvsp[(3) - (3)].token)._ptr;
+
+		(yyval.token).type = TokenType::typeList;
+		vector<int> * list =  new vector<int>();
+		list->push_back(sd->symtype);
+		(yyval.token)._ptr = list;
+
+		insert(std::string(name),*sd);
+		delete name;
+		delete sd;
+	}
+    break;
+
+  case 32:
+#line 612 "hw2.yacc"
+    {
+		char * name = (yyvsp[(3) - (5)].token)._str;
+		SymbolDesc * sd = (SymbolDesc*)(yyvsp[(5) - (5)].token)._ptr;
+
+		(yyval.token) = (yyvsp[(1) - (5)].token);
+		((vector<int>*)(yyval.token)._ptr)->push_back(sd->symtype);
+
+		insert(std::string(name),*sd);
+		delete name;
+		delete sd;
+	}
+    break;
+
+  case 33:
+#line 624 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::idType;
+		(yyval.token)._ptr = nullptr;
+	}
+    break;
+
+  case 34:
+#line 628 "hw2.yacc"
+    {
+		(yyval.token) = (yyvsp[(2) - (2)].token);
+		// Trail("Function Return");
+	}
+    break;
+
+  case 36:
+#line 635 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		if(seize(std::string((yyvsp[(2) - (5)].token)._str),pSD)){
+			if(pSD->symtype == SymbolType::constant){
+				Error("Assignment to Constant!");
+			}
+			else if(pSD->symtype != Token2Symbol((yyvsp[(4) - (5)].token).type)){
+				Error("Type Unmatch");
+			}
+			else {
+			}
+		}
+		Trail("Assign Stmt"); 
+	}
+    break;
+
+  case 37:
+#line 649 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		if(seize(std::string((yyvsp[(2) - (5)].token)._str),pSD)){
+			if(pSD->symtype == SymbolType::constant){
+				Error("Assignment to Constant!");
+			}
+			else if(pSD->symtype != Token2Symbol((yyvsp[(4) - (5)].token).type)){
+				Error("Type Unmatch");
+			}
+			else {
+
+			}
+		}
+		else {
+		}
+
+		Trail("Assign Stmt"); 
+	}
+    break;
+
+  case 38:
+#line 667 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(2) - (8)].token)._str);
+
+		if(seize(id,pSD)){
+			if(pSD->symtype != SymbolType::array){
+				Error(id + ": Is not an Array");
+			}
+			else if((yyvsp[(4) - (8)].token).type != TokenType::vint){
+				Error("Array alloc must be integer");
+			}
+			else{
+			}
+		}
+		else {
+		}
+
+		Trail("Array Assign Stmt"); 
+	}
+    break;
+
+  case 39:
+#line 686 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(2) - (8)].token)._str);
+
+		if(seize(id,pSD)){
+			if(pSD->symtype != SymbolType::array){
+				Error(id + ": Is not an Array");
+			}
+			else if((yyvsp[(4) - (8)].token).type != TokenType::vint){
+				Error("Array alloc must be integer");
+			}
+			else{
+			}
+		}
+		else {
+		}
+
+		Trail("Array Assign Stmt"); 
+	}
+    break;
+
+  case 40:
+#line 705 "hw2.yacc"
+    {
+		 Trail("Print Stmt"); 
+	}
+    break;
+
+  case 41:
+#line 708 "hw2.yacc"
+    { 
+		Trail("Println Stmt"); 
+	}
+    break;
+
+  case 42:
+#line 711 "hw2.yacc"
+    { 
+		Trail("Read Stmt"); 
+	}
+    break;
+
+  case 43:
+#line 714 "hw2.yacc"
+    { 
+		if(GETSCOPERETURN()!=SymbolType::none){
+			Error("Return Type Unmatch: " + SymType2Str(GETSCOPERETURN()));
+		}
+		Trail("Return Stmt"); 
+	}
+    break;
+
+  case 44:
+#line 720 "hw2.yacc"
+    { 
+		int req = GETSCOPERETURN();
+		int got = Token2Symbol((yyvsp[(3) - (4)].token).type);
+		if(req != got){
+			Error("Return Type Unmatch: "+ SymType2Str(got) + "("
+					 + SymType2Str(GETSCOPERETURN()) + ")");
+		}
+		Trail("Return Stmt"); 
+	}
+    break;
+
+  case 45:
+#line 729 "hw2.yacc"
+    {
+		if((yyvsp[(4) - (11)].token).type != TokenType::vbool){
+			Error("Expression must be boolean");
+		}
+	 	Trail("If Else Stmt"); 
+	}
+    break;
+
+  case 46:
+#line 735 "hw2.yacc"
+    { 
+		if((yyvsp[(4) - (9)].token).type != TokenType::vbool){
+			Error("Expression must be boolean");
+		}
+		Trail("If Stmt"); 
+	}
+    break;
+
+  case 47:
+#line 741 "hw2.yacc"
+    { 
+		if((yyvsp[(4) - (9)].token).type != TokenType::vbool){
+			Error("Expression must be boolean");
+		}
+		Trail("While Stmt"); 
+	}
+    break;
+
+  case 48:
+#line 747 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(2) - (6)].token)._str); delete (yyvsp[(2) - (6)].token)._str;
+		vector<int>* list = (std::vector<int>*)(yyvsp[(4) - (6)].token)._ptr;
+		if(seize(id,pSD)){
+			if(pSD->symtype != SymbolType::function || pSD->symtype != SymbolType::procedure){
+				Error("\'" + id + "\' is not a Function") ;
+			}
+			else if(!matchArgs(*list,*pSD)){
+				 Error("Argument type Unmatch!");
+			}
+			else{
+			}
+		}
+		else {
+		}
+		delete list;
+		Trail("Function Stmt"); 
+	}
+    break;
+
+  case 49:
+#line 766 "hw2.yacc"
+    { 
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(2) - (3)].token)._str); delete (yyvsp[(2) - (3)].token)._str;
+		if(seize(id,pSD)){
+			if(pSD->symtype != SymbolType::function || pSD->symtype != SymbolType::procedure){
+				Error("\'" + id + "\' is not a Function") ;
+			}
+			else{
+			}
+		}
+		else {
+		}
+		Trail("Function Stmt"); 
+	}
+    break;
+
+  case 50:
+#line 781 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::typeList;
+		vector<int> & list = *(new vector<int>());
+		list.push_back(Token2Symbol((yyvsp[(1) - (1)].token).type));
+		(yyval.token)._ptr = &list;
+	}
+    break;
+
+  case 51:
+#line 787 "hw2.yacc"
+    {
+		(yyval.token) = (yyvsp[(1) - (3)].token);
+		vector<int> & list = *(vector<int>*)(yyval.token)._ptr;
+		list.push_back(Token2Symbol((yyvsp[(3) - (3)].token).type));
+	}
+    break;
+
+  case 52:
+#line 794 "hw2.yacc"
+    {
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vint;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._int + (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real + (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (double)(yyvsp[(1) - (3)].token)._int + (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real + (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 53:
+#line 816 "hw2.yacc"
+    {
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vint;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._int - (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real - (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (double)(yyvsp[(1) - (3)].token)._int - (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real - (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 54:
+#line 838 "hw2.yacc"
+    {
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vint;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._int * (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real * (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (double)(yyvsp[(1) - (3)].token)._int * (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = (yyvsp[(1) - (3)].token)._real * (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 55:
+#line 860 "hw2.yacc"
+    {
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vint;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._int + (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._real + (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._int = (double)(yyvsp[(1) - (3)].token)._int + (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._real + (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 56:
+#line 882 "hw2.yacc"
+    {
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vint;
+				(yyval.token)._int = (yyvsp[(1) - (3)].token)._int % (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = fmod((yyvsp[(1) - (3)].token)._real,(double)(yyvsp[(3) - (3)].token)._int);
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = fmod((double)(yyvsp[(1) - (3)].token)._int,(yyvsp[(3) - (3)].token)._real);
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token).type = TokenType::vreal;
+				(yyval.token)._real = fmod((yyvsp[(1) - (3)].token)._real,(yyvsp[(3) - (3)].token)._real);
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 57:
+#line 904 "hw2.yacc"
+    {
+		if((yyvsp[(2) - (2)].token).type == TokenType::vreal){
+			(yyval.token).type = TokenType::vreal;
+			(yyval.token)._real = -1 * (yyvsp[(2) - (2)].token)._real;
+		}
+		else if((yyvsp[(2) - (2)].token).type == TokenType::vint){
+			(yyval.token).type = TokenType::vint;
+			(yyval.token)._int = -1 * (yyvsp[(2) - (2)].token)._int;
+		}
+		else {
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 58:
+#line 918 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int < (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real < (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int < (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real < (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 59:
+#line 937 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int <= (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real <= (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int <= (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real <= (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 60:
+#line 956 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int == (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real == (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int == (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real == (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type == (yyvsp[(3) - (3)].token).type){
+			if((yyvsp[(1) - (3)].token).type == TokenType::vstring){
+				(yyval.token)._bool = (strcmp((yyvsp[(1) - (3)].token)._str,(yyvsp[(3) - (3)].token)._str) == 0);
+			}
+			else{
+				(yyval.token)._bool = ((yyvsp[(1) - (3)].token)._ptr != (yyvsp[(3) - (3)].token)._ptr);	
+			}
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 61:
+#line 983 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int >= (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real >= (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int >= (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real >= (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 62:
+#line 1002 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int > (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real > (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int > (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real > (yyvsp[(3) - (3)].token)._real;
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 63:
+#line 1021 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._int != (yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal || (yyvsp[(3) - (3)].token).type==TokenType::vint){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real != (double)(yyvsp[(3) - (3)].token)._int;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vint && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (double)(yyvsp[(1) - (3)].token)._int != (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type==TokenType::vreal && (yyvsp[(3) - (3)].token).type==TokenType::vreal){
+				(yyval.token)._bool = (yyvsp[(1) - (3)].token)._real != (yyvsp[(3) - (3)].token)._real;
+		}
+		else if((yyvsp[(1) - (3)].token).type == (yyvsp[(3) - (3)].token).type){
+			if((yyvsp[(1) - (3)].token).type == TokenType::vstring){
+				(yyval.token)._bool = !(strcmp((yyvsp[(1) - (3)].token)._str,(yyvsp[(3) - (3)].token)._str) == 0);
+			}
+			else{
+				(yyval.token)._bool = !((yyvsp[(1) - (3)].token)._ptr != (yyvsp[(3) - (3)].token)._ptr);	
+			}
+		}
+		else{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 64:
+#line 1048 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type == (yyvsp[(3) - (3)].token).type && (yyvsp[(1) - (3)].token).type == TokenType::vbool){
+			(yyval.token)._bool = (yyvsp[(1) - (3)].token)._bool && (yyvsp[(3) - (3)].token)._bool;
+		}
+		else
+		{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 65:
+#line 1059 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(1) - (3)].token).type == (yyvsp[(3) - (3)].token).type && (yyvsp[(1) - (3)].token).type == TokenType::vbool){
+			(yyval.token)._bool = (yyvsp[(1) - (3)].token)._bool || (yyvsp[(3) - (3)].token)._bool;
+		}
+		else
+		{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 66:
+#line 1070 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		if((yyvsp[(2) - (2)].token).type == TokenType::vbool){
+			(yyval.token)._bool = !((yyvsp[(2) - (2)].token)._bool);
+		}
+		else
+		{
+			(yyval.token).type = TokenType::vunknown;
+			Warn("Unknown Action");
+		}
+	}
+    break;
+
+  case 67:
+#line 1081 "hw2.yacc"
+    {
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(1) - (4)].token)._str); delete (yyvsp[(1) - (4)].token)._str;
+		if(seize(std::string(id),pSD)){
+			if(pSD->symtype != SymbolType::array){
+				Error(id + ": Is not an Array");
+			}
+			else if((yyvsp[(3) - (4)].token).type != TokenType::vint){
+				Error("Array alloc must be integer");
+			}
+			else{
+				(yyval.token).type = Symbol2Token(pSD->symdeps[0].baseType);
+			}
+		}
+		else {
+		}
+	}
+    break;
+
+  case 68:
+#line 1098 "hw2.yacc"
+    {
+		SymbolDesc * pSD;
+		std::string id = std::string((yyvsp[(1) - (4)].token)._str);delete (yyvsp[(1) - (4)].token)._str;
+		if(seize(std::string(id),pSD)){
+			vector<int>& list = *(std::vector<int>*)(yyvsp[(3) - (4)].token)._ptr;
+			if(pSD->symtype != SymbolType::function){
+				Error(id + ": Is not a Array");
+			}
+			else if(!matchArgs(list,*pSD)){
+				Error("Argument type Unmatch");
+			}
+			else{
+				(yyval.token).type = Symbol2Token(pSD->symdeps[0].retType);
+			}
+		}
+		else {
+		}
+	}
+    break;
+
+  case 69:
+#line 1116 "hw2.yacc"
+    {
+		SymbolDesc * pSD;
+		if(seize(std::string((yyvsp[(1) - (1)].token)._str),pSD)){
+			(yyval.token).type = Symbol2Token(pSD->symtype);
+		}
+		else {
+			// cout << "NO SUCH ID";
+		}
+		delete (yyvsp[(1) - (1)].token)._str;
+	}
+    break;
+
+  case 70:
+#line 1126 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vint;
+		(yyval.token)._int = (yyvsp[(1) - (1)].token)._int;
+	}
+    break;
+
+  case 71:
+#line 1130 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vreal;
+		(yyval.token)._real = (yyvsp[(1) - (1)].token)._real;
+	}
+    break;
+
+  case 72:
+#line 1134 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		(yyval.token)._bool = true;
+	}
+    break;
+
+  case 73:
+#line 1138 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vbool;
+		(yyval.token)._bool = false;
+	}
+    break;
+
+  case 74:
+#line 1142 "hw2.yacc"
+    {
+		(yyval.token).type = TokenType::vstring;
+		(yyval.token)._str = (yyvsp[(1) - (1)].token)._str;
+	}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1766 "y.tab.c"
+#line 2953 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1976,7 +3163,7 @@ yyreturn:
 }
 
 
-#line 329 "hw2.yacc"
+#line 1148 "hw2.yacc"
 
 int main(int argc,char ** argv )
 {
@@ -1990,10 +3177,13 @@ int main(int argc,char ** argv )
 		return -1;
 	} 
 	//Global Symbol Table
-	TABLECHAIN = new TableChain();
+	InitialTableStack();
+	cout << lineno << ":";
 	//Start parsing.
 	yyparse();
-	printf("\n");
+	cout << endl << endl;
+	cout << warnMsg << endl;
+	cout << errorMsg << endl;
 }
 
 

@@ -162,17 +162,12 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 158 "hw2.yacc"
+#line 362 "hw2.yacc"
 {
-	int boolean;
-	int integer;
-	double real;
-	char * str;
-	void * voidptr;
-	VARTYPE vartype;
+	TOKEN token;
 }
 /* Line 1529 of yacc.c.  */
-#line 176 "y.tab.h"
+#line 171 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

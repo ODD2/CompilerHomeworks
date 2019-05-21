@@ -1,303 +1,2581 @@
-Useless nonterminals
-
-   stmt
-   vardecl
-
-
 Terminals which are not used
 
-   MODULE
-   PROCEDURE
-   BEG
-   END
    EXIT
-   RETURN
-   DO
    LOOP
-   WHILE
    REPEAT
    FOR
    CONTINUE
    BREAK
    CASE
-   IF
-   THEN
-   ELSE
    RECORD
    TYPE
    USE
-   VAR
-   ARRAY
    CHAR
-   CONST
-   TRUE
-   FALSE
-   STRINGV
-   REALV
-   INTEGERV
    INTID
    REALID
    BOOLID
    STRID
    FUNCID
-   PRINT
-   PRINTLN
    UTIL
    FN
    IN
-   READ
-   LT
-   LEQ
-   GT
-   GEQ
-   EQ
-   NEQ
-   ANDL
-   ORL
-   NOTL
-   ASSIGN
-   '+'
-   '-'
-   '*'
-   '/'
-   '%'
-   UNARY
-
-
-Useless rules
-
-    8 stmt: /* empty */
-
-    9 vardecl: VAR id_type_list
-   10        | vardecl id_type_list
 
 
 Grammar
 
-    0 $accept: test $end
+    0 $accept: PROGRAM $end
 
-    1 test: id_type_list
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.'
 
-    2 id_list: ID
-    3        | id_list ',' ID
+    2 VAR_CONST_DECL: /* empty */
+    3               | VAR_CONST_DECL VAR_DECL
+    4               | VAR_CONST_DECL CONST_DECL
 
-    4 id_type_list: id_list ':' STRING ';'
-    5             | id_list ':' BOOLEAN ';'
-    6             | id_list ':' INTEGER ';'
-    7             | id_list ':' REAL ';'
+    5 VAR_DECL: VAR ';'
+    6         | VAR ID_LIST ':' ID_TYPE ';'
+    7         | VAR_DECL ID_LIST ':' ID_TYPE ';'
+
+    8 ID_LIST: ID
+    9        | ID_LIST ',' ID
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' OF BASIC_TYPES
+   11        | BASIC_TYPES
+
+   12 BASIC_TYPES: BOOLEAN
+   13            | INTEGER
+   14            | REAL
+   15            | STRING
+
+   16 CONST_DECL: CONST ';'
+   17           | CONST ID EQ VALUES ';'
+   18           | CONST_DECL ID EQ VALUES ';'
+
+   19 VALUES: INTEGERV
+   20       | REALV
+   21       | TRUE
+   22       | FALSE
+   23       | STRINGV
+
+   24 FUNC_DECL: /* empty */
+
+   25 @1: /* empty */
+
+   26 @2: /* empty */
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+   28 FUNC_ARGS: /* empty */
+   29          | '(' FUNC_VARS ')'
+
+   30 FUNC_VARS: ID ':' ID_TYPE
+   31          | FUNC_VARS ',' ID ':' ID_TYPE
+
+   32 FUNC_RET: /* empty */
+   33         | ':' ID_TYPE
+
+   34 STMTS: /* empty */
+   35      | STMTS ID ASSIGN EXPR ';'
+   36      | STMTS ID EQ EXPR ';'
+   37      | STMTS ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS PRINT EXPR ';'
+   40      | STMTS PRINTLN EXPR ';'
+   41      | STMTS READ ID ';'
+   42      | STMTS RETURN ';'
+   43      | STMTS RETURN EXPR ';'
+   44      | STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR ')' THEN STMTS END ';'
+   46      | STMTS WHILE '(' EXPR ')' DO STMTS END ';'
+   47      | STMTS ID '(' ARG_LIST ')' ';'
+   48      | STMTS ID ';'
+
+   49 ARG_LIST: EXPR
+   50         | ARG_LIST ',' EXPR
+
+   51 EXPR: EXPR '+' EXPR
+   52     | EXPR '-' EXPR
+   53     | EXPR '*' EXPR
+   54     | EXPR '/' EXPR
+   55     | EXPR '%' EXPR
+   56     | '-' EXPR
+   57     | EXPR LT EXPR
+   58     | EXPR LEQ EXPR
+   59     | EXPR EQ EXPR
+   60     | EXPR GEQ EXPR
+   61     | EXPR GT EXPR
+   62     | EXPR NEQ EXPR
+   63     | EXPR ANDL EXPR
+   64     | EXPR ORL EXPR
+   65     | NOTL EXPR
+   66     | ID '[' EXPR ']'
+   67     | ID '(' ARG_LIST ')'
+   68     | ID
+   69     | INTEGERV
+   70     | REALV
+   71     | TRUE
+   72     | FALSE
+   73     | STRINGV
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'%' (37)
-'*' (42)
-'+' (43)
-',' (44) 3
-'-' (45)
-'/' (47)
-':' (58) 4 5 6 7
-';' (59) 4 5 6 7
+'%' (37) 55
+'(' (40) 29 44 45 46 47 67
+')' (41) 29 44 45 46 47 67
+'*' (42) 53
+'+' (43) 51
+',' (44) 9 10 31 50
+'-' (45) 52 56
+'.' (46) 1
+'/' (47) 54
+':' (58) 6 7 30 31 33
+';' (59) 5 6 7 16 17 18 27 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+'[' (91) 10 37 38 66
+']' (93) 10 37 38 66
 error (256)
-MODULE (258)
-PROCEDURE (259)
-BEG (260)
-END (261)
+MODULE (258) 1
+PROCEDURE (259) 27
+BEG (260) 1 27
+END (261) 1 27 44 45 46
 EXIT (262)
-RETURN (263)
-DO (264)
+RETURN (263) 42 43
+DO (264) 46
 LOOP (265)
-WHILE (266)
+WHILE (266) 46
 REPEAT (267)
 FOR (268)
 CONTINUE (269)
 BREAK (270)
 CASE (271)
-IF (272)
-THEN (273)
-ELSE (274)
+IF (272) 44 45
+THEN (273) 44 45
+ELSE (274) 44
 RECORD (275)
 TYPE (276)
 USE (277)
-VAR (278)
-ARRAY (279)
-BOOLEAN (280) 5
-CHAR (281)
-CONST (282)
-REAL (283) 7
-STRING (284) 4
-INTEGER (285) 6
-TRUE (286)
-FALSE (287)
-STRINGV (288)
-REALV (289)
-INTEGERV (290)
-ID (291) 2 3
-INTID (292)
-REALID (293)
-BOOLID (294)
-STRID (295)
-FUNCID (296)
-PRINT (297)
-PRINTLN (298)
-UTIL (299)
-FN (300)
-IN (301)
-READ (302)
-LT (303)
-LEQ (304)
-GT (305)
-GEQ (306)
-EQ (307)
-NEQ (308)
-ANDL (309)
-ORL (310)
-NOTL (311)
-ASSIGN (312)
-UNARY (313)
+VAR (278) 5 6
+BOOLEAN (279) 12
+CHAR (280)
+CONST (281) 16 17
+REAL (282) 14
+STRING (283) 15
+INTEGER (284) 13
+ARRAY (285) 10
+OF (286) 10
+TRUE (287) 21 71
+FALSE (288) 22 72
+STRINGV (289) 23 73
+REALV (290) 20 70
+INTEGERV (291) 10 19 69
+ID (292) 1 8 9 17 18 27 30 31 35 36 37 38 41 47 48 66 67 68
+INTID (293)
+REALID (294)
+BOOLID (295)
+STRID (296)
+FUNCID (297)
+LT (298) 57
+LEQ (299) 58
+GT (300) 61
+GEQ (301) 60
+EQ (302) 17 18 36 38 59
+NEQ (303) 62
+ANDL (304) 63
+ORL (305) 64
+NOTL (306) 65
+ASSIGN (307) 35 37
+PRINT (308) 39
+PRINTLN (309) 40
+UTIL (310)
+FN (311)
+IN (312)
+READ (313) 41
+UNARY (314)
 
 
 Nonterminals, with rules where they appear
 
-$accept (67)
+$accept (73)
     on left: 0
-test (68)
+PROGRAM (74)
     on left: 1, on right: 0
-id_list (69)
-    on left: 2 3, on right: 3 4 5 6 7
-id_type_list (70)
-    on left: 4 5 6 7, on right: 1
+VAR_CONST_DECL (75)
+    on left: 2 3 4, on right: 1 3 4 27
+VAR_DECL (76)
+    on left: 5 6 7, on right: 3 7
+ID_LIST (77)
+    on left: 8 9, on right: 6 7 9
+ID_TYPE (78)
+    on left: 10 11, on right: 6 7 30 31 33
+BASIC_TYPES (79)
+    on left: 12 13 14 15, on right: 10 11
+CONST_DECL (80)
+    on left: 16 17 18, on right: 4 18
+VALUES (81)
+    on left: 19 20 21 22 23, on right: 17 18
+FUNC_DECL (82)
+    on left: 24 27, on right: 1 27
+@1 (83)
+    on left: 25, on right: 27
+@2 (84)
+    on left: 26, on right: 27
+FUNC_ARGS (85)
+    on left: 28 29, on right: 27
+FUNC_VARS (86)
+    on left: 30 31, on right: 29 31
+FUNC_RET (87)
+    on left: 32 33, on right: 27
+STMTS (88)
+    on left: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48,
+    on right: 1 27 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+ARG_LIST (89)
+    on left: 49 50, on right: 47 50 67
+EXPR (90)
+    on left: 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68
+    69 70 71 72 73, on right: 35 36 37 38 39 40 43 44 45 46 49 50 51
+    52 53 54 55 56 57 58 59 60 61 62 63 64 65 66
 
 
 state 0
 
-    0 $accept: . test $end
+    0 $accept: . PROGRAM $end
 
-    ID  shift, and go to state 1
+    MODULE  shift, and go to state 1
 
-    test          go to state 2
-    id_list       go to state 3
-    id_type_list  go to state 4
+    PROGRAM  go to state 2
 
 
 state 1
 
-    2 id_list: ID .
+    1 PROGRAM: MODULE . ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.'
 
-    $default  reduce using rule 2 (id_list)
+    ID  shift, and go to state 3
 
 
 state 2
 
-    0 $accept: test . $end
+    0 $accept: PROGRAM . $end
 
-    $end  shift, and go to state 5
+    $end  shift, and go to state 4
 
 
 state 3
 
-    3 id_list: id_list . ',' ID
-    4 id_type_list: id_list . ':' STRING ';'
-    5             | id_list . ':' BOOLEAN ';'
-    6             | id_list . ':' INTEGER ';'
-    7             | id_list . ':' REAL ';'
+    1 PROGRAM: MODULE ID . VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.'
 
-    ','  shift, and go to state 6
-    ':'  shift, and go to state 7
+    $default  reduce using rule 2 (VAR_CONST_DECL)
+
+    VAR_CONST_DECL  go to state 5
 
 
 state 4
 
-    1 test: id_type_list .
-
-    $default  reduce using rule 1 (test)
-
-
-state 5
-
-    0 $accept: test $end .
+    0 $accept: PROGRAM $end .
 
     $default  accept
 
 
+state 5
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL . FUNC_DECL BEG STMTS END ID '.'
+    3 VAR_CONST_DECL: VAR_CONST_DECL . VAR_DECL
+    4               | VAR_CONST_DECL . CONST_DECL
+
+    VAR    shift, and go to state 6
+    CONST  shift, and go to state 7
+
+    $default  reduce using rule 24 (FUNC_DECL)
+
+    VAR_DECL    go to state 8
+    CONST_DECL  go to state 9
+    FUNC_DECL   go to state 10
+
+
 state 6
 
-    3 id_list: id_list ',' . ID
+    5 VAR_DECL: VAR . ';'
+    6         | VAR . ID_LIST ':' ID_TYPE ';'
 
-    ID  shift, and go to state 8
+    ID   shift, and go to state 11
+    ';'  shift, and go to state 12
+
+    ID_LIST  go to state 13
 
 
 state 7
 
-    4 id_type_list: id_list ':' . STRING ';'
-    5             | id_list ':' . BOOLEAN ';'
-    6             | id_list ':' . INTEGER ';'
-    7             | id_list ':' . REAL ';'
+   16 CONST_DECL: CONST . ';'
+   17           | CONST . ID EQ VALUES ';'
 
-    BOOLEAN  shift, and go to state 9
-    REAL     shift, and go to state 10
-    STRING   shift, and go to state 11
-    INTEGER  shift, and go to state 12
+    ID   shift, and go to state 14
+    ';'  shift, and go to state 15
 
 
 state 8
 
-    3 id_list: id_list ',' ID .
+    3 VAR_CONST_DECL: VAR_CONST_DECL VAR_DECL .
+    7 VAR_DECL: VAR_DECL . ID_LIST ':' ID_TYPE ';'
 
-    $default  reduce using rule 3 (id_list)
+    ID  shift, and go to state 11
+
+    $default  reduce using rule 3 (VAR_CONST_DECL)
+
+    ID_LIST  go to state 16
 
 
 state 9
 
-    5 id_type_list: id_list ':' BOOLEAN . ';'
+    4 VAR_CONST_DECL: VAR_CONST_DECL CONST_DECL .
+   18 CONST_DECL: CONST_DECL . ID EQ VALUES ';'
 
-    ';'  shift, and go to state 13
+    ID  shift, and go to state 17
+
+    $default  reduce using rule 4 (VAR_CONST_DECL)
 
 
 state 10
 
-    7 id_type_list: id_list ':' REAL . ';'
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL . BEG STMTS END ID '.'
+   27 FUNC_DECL: FUNC_DECL . @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
 
-    ';'  shift, and go to state 14
+    BEG  shift, and go to state 18
+
+    $default  reduce using rule 25 (@1)
+
+    @1  go to state 19
 
 
 state 11
 
-    4 id_type_list: id_list ':' STRING . ';'
+    8 ID_LIST: ID .
 
-    ';'  shift, and go to state 15
+    $default  reduce using rule 8 (ID_LIST)
 
 
 state 12
 
-    6 id_type_list: id_list ':' INTEGER . ';'
+    5 VAR_DECL: VAR ';' .
 
-    ';'  shift, and go to state 16
+    $default  reduce using rule 5 (VAR_DECL)
 
 
 state 13
 
-    5 id_type_list: id_list ':' BOOLEAN ';' .
+    6 VAR_DECL: VAR ID_LIST . ':' ID_TYPE ';'
+    9 ID_LIST: ID_LIST . ',' ID
 
-    $default  reduce using rule 5 (id_type_list)
+    ':'  shift, and go to state 20
+    ','  shift, and go to state 21
 
 
 state 14
 
-    7 id_type_list: id_list ':' REAL ';' .
+   17 CONST_DECL: CONST ID . EQ VALUES ';'
 
-    $default  reduce using rule 7 (id_type_list)
+    EQ  shift, and go to state 22
 
 
 state 15
 
-    4 id_type_list: id_list ':' STRING ';' .
+   16 CONST_DECL: CONST ';' .
 
-    $default  reduce using rule 4 (id_type_list)
+    $default  reduce using rule 16 (CONST_DECL)
 
 
 state 16
 
-    6 id_type_list: id_list ':' INTEGER ';' .
+    7 VAR_DECL: VAR_DECL ID_LIST . ':' ID_TYPE ';'
+    9 ID_LIST: ID_LIST . ',' ID
 
-    $default  reduce using rule 6 (id_type_list)
+    ':'  shift, and go to state 23
+    ','  shift, and go to state 21
+
+
+state 17
+
+   18 CONST_DECL: CONST_DECL ID . EQ VALUES ';'
+
+    EQ  shift, and go to state 24
+
+
+state 18
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG . STMTS END ID '.'
+
+    $default  reduce using rule 34 (STMTS)
+
+    STMTS  go to state 25
+
+
+state 19
+
+   27 FUNC_DECL: FUNC_DECL @1 . PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+    PROCEDURE  shift, and go to state 26
+
+
+state 20
+
+    6 VAR_DECL: VAR ID_LIST ':' . ID_TYPE ';'
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+    ARRAY    shift, and go to state 31
+
+    ID_TYPE      go to state 32
+    BASIC_TYPES  go to state 33
+
+
+state 21
+
+    9 ID_LIST: ID_LIST ',' . ID
+
+    ID  shift, and go to state 34
+
+
+state 22
+
+   17 CONST_DECL: CONST ID EQ . VALUES ';'
+
+    TRUE      shift, and go to state 35
+    FALSE     shift, and go to state 36
+    STRINGV   shift, and go to state 37
+    REALV     shift, and go to state 38
+    INTEGERV  shift, and go to state 39
+
+    VALUES  go to state 40
+
+
+state 23
+
+    7 VAR_DECL: VAR_DECL ID_LIST ':' . ID_TYPE ';'
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+    ARRAY    shift, and go to state 31
+
+    ID_TYPE      go to state 41
+    BASIC_TYPES  go to state 33
+
+
+state 24
+
+   18 CONST_DECL: CONST_DECL ID EQ . VALUES ';'
+
+    TRUE      shift, and go to state 35
+    FALSE     shift, and go to state 36
+    STRINGV   shift, and go to state 37
+    REALV     shift, and go to state 38
+    INTEGERV  shift, and go to state 39
+
+    VALUES  go to state 42
+
+
+state 25
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS . END ID '.'
+   35 STMTS: STMTS . ID ASSIGN EXPR ';'
+   36      | STMTS . ID EQ EXPR ';'
+   37      | STMTS . ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS . ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS . PRINT EXPR ';'
+   40      | STMTS . PRINTLN EXPR ';'
+   41      | STMTS . READ ID ';'
+   42      | STMTS . RETURN ';'
+   43      | STMTS . RETURN EXPR ';'
+   44      | STMTS . IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS . IF '(' EXPR ')' THEN STMTS END ';'
+   46      | STMTS . WHILE '(' EXPR ')' DO STMTS END ';'
+   47      | STMTS . ID '(' ARG_LIST ')' ';'
+   48      | STMTS . ID ';'
+
+    END      shift, and go to state 43
+    RETURN   shift, and go to state 44
+    WHILE    shift, and go to state 45
+    IF       shift, and go to state 46
+    ID       shift, and go to state 47
+    PRINT    shift, and go to state 48
+    PRINTLN  shift, and go to state 49
+    READ     shift, and go to state 50
+
+
+state 26
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE . ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+    ID  shift, and go to state 51
+
+
+state 27
+
+   12 BASIC_TYPES: BOOLEAN .
+
+    $default  reduce using rule 12 (BASIC_TYPES)
+
+
+state 28
+
+   14 BASIC_TYPES: REAL .
+
+    $default  reduce using rule 14 (BASIC_TYPES)
+
+
+state 29
+
+   15 BASIC_TYPES: STRING .
+
+    $default  reduce using rule 15 (BASIC_TYPES)
+
+
+state 30
+
+   13 BASIC_TYPES: INTEGER .
+
+    $default  reduce using rule 13 (BASIC_TYPES)
+
+
+state 31
+
+   10 ID_TYPE: ARRAY . '[' INTEGERV ',' INTEGERV ']' OF BASIC_TYPES
+
+    '['  shift, and go to state 52
+
+
+state 32
+
+    6 VAR_DECL: VAR ID_LIST ':' ID_TYPE . ';'
+
+    ';'  shift, and go to state 53
+
+
+state 33
+
+   11 ID_TYPE: BASIC_TYPES .
+
+    $default  reduce using rule 11 (ID_TYPE)
+
+
+state 34
+
+    9 ID_LIST: ID_LIST ',' ID .
+
+    $default  reduce using rule 9 (ID_LIST)
+
+
+state 35
+
+   21 VALUES: TRUE .
+
+    $default  reduce using rule 21 (VALUES)
+
+
+state 36
+
+   22 VALUES: FALSE .
+
+    $default  reduce using rule 22 (VALUES)
+
+
+state 37
+
+   23 VALUES: STRINGV .
+
+    $default  reduce using rule 23 (VALUES)
+
+
+state 38
+
+   20 VALUES: REALV .
+
+    $default  reduce using rule 20 (VALUES)
+
+
+state 39
+
+   19 VALUES: INTEGERV .
+
+    $default  reduce using rule 19 (VALUES)
+
+
+state 40
+
+   17 CONST_DECL: CONST ID EQ VALUES . ';'
+
+    ';'  shift, and go to state 54
+
+
+state 41
+
+    7 VAR_DECL: VAR_DECL ID_LIST ':' ID_TYPE . ';'
+
+    ';'  shift, and go to state 55
+
+
+state 42
+
+   18 CONST_DECL: CONST_DECL ID EQ VALUES . ';'
+
+    ';'  shift, and go to state 56
+
+
+state 43
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END . ID '.'
+
+    ID  shift, and go to state 57
+
+
+state 44
+
+   42 STMTS: STMTS RETURN . ';'
+   43      | STMTS RETURN . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+    ';'       shift, and go to state 66
+
+    EXPR  go to state 67
+
+
+state 45
+
+   46 STMTS: STMTS WHILE . '(' EXPR ')' DO STMTS END ';'
+
+    '('  shift, and go to state 68
+
+
+state 46
+
+   44 STMTS: STMTS IF . '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF . '(' EXPR ')' THEN STMTS END ';'
+
+    '('  shift, and go to state 69
+
+
+state 47
+
+   35 STMTS: STMTS ID . ASSIGN EXPR ';'
+   36      | STMTS ID . EQ EXPR ';'
+   37      | STMTS ID . '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS ID . '[' EXPR ']' EQ EXPR ';'
+   47      | STMTS ID . '(' ARG_LIST ')' ';'
+   48      | STMTS ID . ';'
+
+    EQ      shift, and go to state 70
+    ASSIGN  shift, and go to state 71
+    ';'     shift, and go to state 72
+    '['     shift, and go to state 73
+    '('     shift, and go to state 74
+
+
+state 48
+
+   39 STMTS: STMTS PRINT . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 75
+
+
+state 49
+
+   40 STMTS: STMTS PRINTLN . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 76
+
+
+state 50
+
+   41 STMTS: STMTS READ . ID ';'
+
+    ID  shift, and go to state 77
+
+
+state 51
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID . FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+    '('  shift, and go to state 78
+
+    $default  reduce using rule 28 (FUNC_ARGS)
+
+    FUNC_ARGS  go to state 79
+
+
+state 52
+
+   10 ID_TYPE: ARRAY '[' . INTEGERV ',' INTEGERV ']' OF BASIC_TYPES
+
+    INTEGERV  shift, and go to state 80
+
+
+state 53
+
+    6 VAR_DECL: VAR ID_LIST ':' ID_TYPE ';' .
+
+    $default  reduce using rule 6 (VAR_DECL)
+
+
+state 54
+
+   17 CONST_DECL: CONST ID EQ VALUES ';' .
+
+    $default  reduce using rule 17 (CONST_DECL)
+
+
+state 55
+
+    7 VAR_DECL: VAR_DECL ID_LIST ':' ID_TYPE ';' .
+
+    $default  reduce using rule 7 (VAR_DECL)
+
+
+state 56
+
+   18 CONST_DECL: CONST_DECL ID EQ VALUES ';' .
+
+    $default  reduce using rule 18 (CONST_DECL)
+
+
+state 57
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID . '.'
+
+    '.'  shift, and go to state 81
+
+
+state 58
+
+   71 EXPR: TRUE .
+
+    $default  reduce using rule 71 (EXPR)
+
+
+state 59
+
+   72 EXPR: FALSE .
+
+    $default  reduce using rule 72 (EXPR)
+
+
+state 60
+
+   73 EXPR: STRINGV .
+
+    $default  reduce using rule 73 (EXPR)
+
+
+state 61
+
+   70 EXPR: REALV .
+
+    $default  reduce using rule 70 (EXPR)
+
+
+state 62
+
+   69 EXPR: INTEGERV .
+
+    $default  reduce using rule 69 (EXPR)
+
+
+state 63
+
+   66 EXPR: ID . '[' EXPR ']'
+   67     | ID . '(' ARG_LIST ')'
+   68     | ID .
+
+    '['  shift, and go to state 82
+    '('  shift, and go to state 83
+
+    $default  reduce using rule 68 (EXPR)
+
+
+state 64
+
+   65 EXPR: NOTL . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 84
+
+
+state 65
+
+   56 EXPR: '-' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 85
+
+
+state 66
+
+   42 STMTS: STMTS RETURN ';' .
+
+    $default  reduce using rule 42 (STMTS)
+
+
+state 67
+
+   43 STMTS: STMTS RETURN EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 99
+
+
+state 68
+
+   46 STMTS: STMTS WHILE '(' . EXPR ')' DO STMTS END ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 100
+
+
+state 69
+
+   44 STMTS: STMTS IF '(' . EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' . EXPR ')' THEN STMTS END ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 101
+
+
+state 70
+
+   36 STMTS: STMTS ID EQ . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 102
+
+
+state 71
+
+   35 STMTS: STMTS ID ASSIGN . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 103
+
+
+state 72
+
+   48 STMTS: STMTS ID ';' .
+
+    $default  reduce using rule 48 (STMTS)
+
+
+state 73
+
+   37 STMTS: STMTS ID '[' . EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS ID '[' . EXPR ']' EQ EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 104
+
+
+state 74
+
+   47 STMTS: STMTS ID '(' . ARG_LIST ')' ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    ARG_LIST  go to state 105
+    EXPR      go to state 106
+
+
+state 75
+
+   39 STMTS: STMTS PRINT EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 107
+
+
+state 76
+
+   40 STMTS: STMTS PRINTLN EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 108
+
+
+state 77
+
+   41 STMTS: STMTS READ ID . ';'
+
+    ';'  shift, and go to state 109
+
+
+state 78
+
+   29 FUNC_ARGS: '(' . FUNC_VARS ')'
+
+    ID  shift, and go to state 110
+
+    FUNC_VARS  go to state 111
+
+
+state 79
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS . FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+    ':'  shift, and go to state 112
+
+    $default  reduce using rule 32 (FUNC_RET)
+
+    FUNC_RET  go to state 113
+
+
+state 80
+
+   10 ID_TYPE: ARRAY '[' INTEGERV . ',' INTEGERV ']' OF BASIC_TYPES
+
+    ','  shift, and go to state 114
+
+
+state 81
+
+    1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.' .
+
+    $default  reduce using rule 1 (PROGRAM)
+
+
+state 82
+
+   66 EXPR: ID '[' . EXPR ']'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 115
+
+
+state 83
+
+   67 EXPR: ID '(' . ARG_LIST ')'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    ARG_LIST  go to state 116
+    EXPR      go to state 106
+
+
+state 84
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+   65     | NOTL EXPR .
+
+    $default  reduce using rule 65 (EXPR)
+
+
+state 85
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   56     | '-' EXPR .
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 56 (EXPR)
+
+
+state 86
+
+   57 EXPR: EXPR LT . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 117
+
+
+state 87
+
+   58 EXPR: EXPR LEQ . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 118
+
+
+state 88
+
+   61 EXPR: EXPR GT . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 119
+
+
+state 89
+
+   60 EXPR: EXPR GEQ . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 120
+
+
+state 90
+
+   59 EXPR: EXPR EQ . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 121
+
+
+state 91
+
+   62 EXPR: EXPR NEQ . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 122
+
+
+state 92
+
+   63 EXPR: EXPR ANDL . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 123
+
+
+state 93
+
+   64 EXPR: EXPR ORL . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 124
+
+
+state 94
+
+   51 EXPR: EXPR '+' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 125
+
+
+state 95
+
+   52 EXPR: EXPR '-' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 126
+
+
+state 96
+
+   53 EXPR: EXPR '*' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 127
+
+
+state 97
+
+   54 EXPR: EXPR '/' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 128
+
+
+state 98
+
+   55 EXPR: EXPR '%' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 129
+
+
+state 99
+
+   43 STMTS: STMTS RETURN EXPR ';' .
+
+    $default  reduce using rule 43 (STMTS)
+
+
+state 100
+
+   46 STMTS: STMTS WHILE '(' EXPR . ')' DO STMTS END ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ')'   shift, and go to state 130
+
+
+state 101
+
+   44 STMTS: STMTS IF '(' EXPR . ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR . ')' THEN STMTS END ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ')'   shift, and go to state 131
+
+
+state 102
+
+   36 STMTS: STMTS ID EQ EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 132
+
+
+state 103
+
+   35 STMTS: STMTS ID ASSIGN EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 133
+
+
+state 104
+
+   37 STMTS: STMTS ID '[' EXPR . ']' ASSIGN EXPR ';'
+   38      | STMTS ID '[' EXPR . ']' EQ EXPR ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ']'   shift, and go to state 134
+
+
+state 105
+
+   47 STMTS: STMTS ID '(' ARG_LIST . ')' ';'
+   50 ARG_LIST: ARG_LIST . ',' EXPR
+
+    ','  shift, and go to state 135
+    ')'  shift, and go to state 136
+
+
+state 106
+
+   49 ARG_LIST: EXPR .
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+
+    $default  reduce using rule 49 (ARG_LIST)
+
+
+state 107
+
+   39 STMTS: STMTS PRINT EXPR ';' .
+
+    $default  reduce using rule 39 (STMTS)
+
+
+state 108
+
+   40 STMTS: STMTS PRINTLN EXPR ';' .
+
+    $default  reduce using rule 40 (STMTS)
+
+
+state 109
+
+   41 STMTS: STMTS READ ID ';' .
+
+    $default  reduce using rule 41 (STMTS)
+
+
+state 110
+
+   30 FUNC_VARS: ID . ':' ID_TYPE
+
+    ':'  shift, and go to state 137
+
+
+state 111
+
+   29 FUNC_ARGS: '(' FUNC_VARS . ')'
+   31 FUNC_VARS: FUNC_VARS . ',' ID ':' ID_TYPE
+
+    ','  shift, and go to state 138
+    ')'  shift, and go to state 139
+
+
+state 112
+
+   33 FUNC_RET: ':' . ID_TYPE
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+    ARRAY    shift, and go to state 31
+
+    ID_TYPE      go to state 140
+    BASIC_TYPES  go to state 33
+
+
+state 113
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET . @2 VAR_CONST_DECL BEG STMTS END ID ';'
+
+    $default  reduce using rule 26 (@2)
+
+    @2  go to state 141
+
+
+state 114
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' . INTEGERV ']' OF BASIC_TYPES
+
+    INTEGERV  shift, and go to state 142
+
+
+state 115
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+   66     | ID '[' EXPR . ']'
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ']'   shift, and go to state 143
+
+
+state 116
+
+   50 ARG_LIST: ARG_LIST . ',' EXPR
+   67 EXPR: ID '(' ARG_LIST . ')'
+
+    ','  shift, and go to state 135
+    ')'  shift, and go to state 144
+
+
+state 117
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   57     | EXPR LT EXPR .
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 57 (EXPR)
+
+
+state 118
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   58     | EXPR LEQ EXPR .
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 58 (EXPR)
+
+
+state 119
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   61     | EXPR GT EXPR .
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 61 (EXPR)
+
+
+state 120
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   60     | EXPR GEQ EXPR .
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 60 (EXPR)
+
+
+state 121
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   59     | EXPR EQ EXPR .
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 59 (EXPR)
+
+
+state 122
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   62     | EXPR NEQ EXPR .
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 62 (EXPR)
+
+
+state 123
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   63     | EXPR ANDL EXPR .
+   64     | EXPR . ORL EXPR
+
+    LT   shift, and go to state 86
+    LEQ  shift, and go to state 87
+    GT   shift, and go to state 88
+    GEQ  shift, and go to state 89
+    EQ   shift, and go to state 90
+    NEQ  shift, and go to state 91
+    '+'  shift, and go to state 94
+    '-'  shift, and go to state 95
+    '*'  shift, and go to state 96
+    '/'  shift, and go to state 97
+    '%'  shift, and go to state 98
+
+    $default  reduce using rule 63 (EXPR)
+
+
+state 124
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+   64     | EXPR ORL EXPR .
+
+    LT   shift, and go to state 86
+    LEQ  shift, and go to state 87
+    GT   shift, and go to state 88
+    GEQ  shift, and go to state 89
+    EQ   shift, and go to state 90
+    NEQ  shift, and go to state 91
+    '+'  shift, and go to state 94
+    '-'  shift, and go to state 95
+    '*'  shift, and go to state 96
+    '/'  shift, and go to state 97
+    '%'  shift, and go to state 98
+
+    $default  reduce using rule 64 (EXPR)
+
+
+state 125
+
+   51 EXPR: EXPR . '+' EXPR
+   51     | EXPR '+' EXPR .
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT   shift, and go to state 86
+    LEQ  shift, and go to state 87
+    GT   shift, and go to state 88
+    GEQ  shift, and go to state 89
+    EQ   shift, and go to state 90
+    NEQ  shift, and go to state 91
+    '*'  shift, and go to state 96
+    '/'  shift, and go to state 97
+    '%'  shift, and go to state 98
+
+    $default  reduce using rule 51 (EXPR)
+
+
+state 126
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   52     | EXPR '-' EXPR .
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT   shift, and go to state 86
+    LEQ  shift, and go to state 87
+    GT   shift, and go to state 88
+    GEQ  shift, and go to state 89
+    EQ   shift, and go to state 90
+    NEQ  shift, and go to state 91
+    '*'  shift, and go to state 96
+    '/'  shift, and go to state 97
+    '%'  shift, and go to state 98
+
+    $default  reduce using rule 52 (EXPR)
+
+
+state 127
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   53     | EXPR '*' EXPR .
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 53 (EXPR)
+
+
+state 128
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   54     | EXPR '/' EXPR .
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 54 (EXPR)
+
+
+state 129
+
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   55     | EXPR '%' EXPR .
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    $default  reduce using rule 55 (EXPR)
+
+
+state 130
+
+   46 STMTS: STMTS WHILE '(' EXPR ')' . DO STMTS END ';'
+
+    DO  shift, and go to state 145
+
+
+state 131
+
+   44 STMTS: STMTS IF '(' EXPR ')' . THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR ')' . THEN STMTS END ';'
+
+    THEN  shift, and go to state 146
+
+
+state 132
+
+   36 STMTS: STMTS ID EQ EXPR ';' .
+
+    $default  reduce using rule 36 (STMTS)
+
+
+state 133
+
+   35 STMTS: STMTS ID ASSIGN EXPR ';' .
+
+    $default  reduce using rule 35 (STMTS)
+
+
+state 134
+
+   37 STMTS: STMTS ID '[' EXPR ']' . ASSIGN EXPR ';'
+   38      | STMTS ID '[' EXPR ']' . EQ EXPR ';'
+
+    EQ      shift, and go to state 147
+    ASSIGN  shift, and go to state 148
+
+
+state 135
+
+   50 ARG_LIST: ARG_LIST ',' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 149
+
+
+state 136
+
+   47 STMTS: STMTS ID '(' ARG_LIST ')' . ';'
+
+    ';'  shift, and go to state 150
+
+
+state 137
+
+   30 FUNC_VARS: ID ':' . ID_TYPE
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+    ARRAY    shift, and go to state 31
+
+    ID_TYPE      go to state 151
+    BASIC_TYPES  go to state 33
+
+
+state 138
+
+   31 FUNC_VARS: FUNC_VARS ',' . ID ':' ID_TYPE
+
+    ID  shift, and go to state 152
+
+
+state 139
+
+   29 FUNC_ARGS: '(' FUNC_VARS ')' .
+
+    $default  reduce using rule 29 (FUNC_ARGS)
+
+
+state 140
+
+   33 FUNC_RET: ':' ID_TYPE .
+
+    $default  reduce using rule 33 (FUNC_RET)
+
+
+state 141
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 . VAR_CONST_DECL BEG STMTS END ID ';'
+
+    $default  reduce using rule 2 (VAR_CONST_DECL)
+
+    VAR_CONST_DECL  go to state 153
+
+
+state 142
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV . ']' OF BASIC_TYPES
+
+    ']'  shift, and go to state 154
+
+
+state 143
+
+   66 EXPR: ID '[' EXPR ']' .
+
+    $default  reduce using rule 66 (EXPR)
+
+
+state 144
+
+   67 EXPR: ID '(' ARG_LIST ')' .
+
+    $default  reduce using rule 67 (EXPR)
+
+
+state 145
+
+   46 STMTS: STMTS WHILE '(' EXPR ')' DO . STMTS END ';'
+
+    $default  reduce using rule 34 (STMTS)
+
+    STMTS  go to state 155
+
+
+state 146
+
+   44 STMTS: STMTS IF '(' EXPR ')' THEN . STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR ')' THEN . STMTS END ';'
+
+    $default  reduce using rule 34 (STMTS)
+
+    STMTS  go to state 156
+
+
+state 147
+
+   38 STMTS: STMTS ID '[' EXPR ']' EQ . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 157
+
+
+state 148
+
+   37 STMTS: STMTS ID '[' EXPR ']' ASSIGN . EXPR ';'
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+
+    EXPR  go to state 158
+
+
+state 149
+
+   50 ARG_LIST: ARG_LIST ',' EXPR .
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+
+    $default  reduce using rule 50 (ARG_LIST)
+
+
+state 150
+
+   47 STMTS: STMTS ID '(' ARG_LIST ')' ';' .
+
+    $default  reduce using rule 47 (STMTS)
+
+
+state 151
+
+   30 FUNC_VARS: ID ':' ID_TYPE .
+
+    $default  reduce using rule 30 (FUNC_VARS)
+
+
+state 152
+
+   31 FUNC_VARS: FUNC_VARS ',' ID . ':' ID_TYPE
+
+    ':'  shift, and go to state 159
+
+
+state 153
+
+    3 VAR_CONST_DECL: VAR_CONST_DECL . VAR_DECL
+    4               | VAR_CONST_DECL . CONST_DECL
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL . BEG STMTS END ID ';'
+
+    BEG    shift, and go to state 160
+    VAR    shift, and go to state 6
+    CONST  shift, and go to state 7
+
+    VAR_DECL    go to state 8
+    CONST_DECL  go to state 9
+
+
+state 154
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' . OF BASIC_TYPES
+
+    OF  shift, and go to state 161
+
+
+state 155
+
+   35 STMTS: STMTS . ID ASSIGN EXPR ';'
+   36      | STMTS . ID EQ EXPR ';'
+   37      | STMTS . ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS . ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS . PRINT EXPR ';'
+   40      | STMTS . PRINTLN EXPR ';'
+   41      | STMTS . READ ID ';'
+   42      | STMTS . RETURN ';'
+   43      | STMTS . RETURN EXPR ';'
+   44      | STMTS . IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS . IF '(' EXPR ')' THEN STMTS END ';'
+   46      | STMTS . WHILE '(' EXPR ')' DO STMTS END ';'
+   46      | STMTS WHILE '(' EXPR ')' DO STMTS . END ';'
+   47      | STMTS . ID '(' ARG_LIST ')' ';'
+   48      | STMTS . ID ';'
+
+    END      shift, and go to state 162
+    RETURN   shift, and go to state 44
+    WHILE    shift, and go to state 45
+    IF       shift, and go to state 46
+    ID       shift, and go to state 47
+    PRINT    shift, and go to state 48
+    PRINTLN  shift, and go to state 49
+    READ     shift, and go to state 50
+
+
+state 156
+
+   35 STMTS: STMTS . ID ASSIGN EXPR ';'
+   36      | STMTS . ID EQ EXPR ';'
+   37      | STMTS . ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS . ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS . PRINT EXPR ';'
+   40      | STMTS . PRINTLN EXPR ';'
+   41      | STMTS . READ ID ';'
+   42      | STMTS . RETURN ';'
+   43      | STMTS . RETURN EXPR ';'
+   44      | STMTS . IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   44      | STMTS IF '(' EXPR ')' THEN STMTS . ELSE STMTS END ';'
+   45      | STMTS . IF '(' EXPR ')' THEN STMTS END ';'
+   45      | STMTS IF '(' EXPR ')' THEN STMTS . END ';'
+   46      | STMTS . WHILE '(' EXPR ')' DO STMTS END ';'
+   47      | STMTS . ID '(' ARG_LIST ')' ';'
+   48      | STMTS . ID ';'
+
+    END      shift, and go to state 163
+    RETURN   shift, and go to state 44
+    WHILE    shift, and go to state 45
+    IF       shift, and go to state 46
+    ELSE     shift, and go to state 164
+    ID       shift, and go to state 47
+    PRINT    shift, and go to state 48
+    PRINTLN  shift, and go to state 49
+    READ     shift, and go to state 50
+
+
+state 157
+
+   38 STMTS: STMTS ID '[' EXPR ']' EQ EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 165
+
+
+state 158
+
+   37 STMTS: STMTS ID '[' EXPR ']' ASSIGN EXPR . ';'
+   51 EXPR: EXPR . '+' EXPR
+   52     | EXPR . '-' EXPR
+   53     | EXPR . '*' EXPR
+   54     | EXPR . '/' EXPR
+   55     | EXPR . '%' EXPR
+   57     | EXPR . LT EXPR
+   58     | EXPR . LEQ EXPR
+   59     | EXPR . EQ EXPR
+   60     | EXPR . GEQ EXPR
+   61     | EXPR . GT EXPR
+   62     | EXPR . NEQ EXPR
+   63     | EXPR . ANDL EXPR
+   64     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 86
+    LEQ   shift, and go to state 87
+    GT    shift, and go to state 88
+    GEQ   shift, and go to state 89
+    EQ    shift, and go to state 90
+    NEQ   shift, and go to state 91
+    ANDL  shift, and go to state 92
+    ORL   shift, and go to state 93
+    '+'   shift, and go to state 94
+    '-'   shift, and go to state 95
+    '*'   shift, and go to state 96
+    '/'   shift, and go to state 97
+    '%'   shift, and go to state 98
+    ';'   shift, and go to state 166
+
+
+state 159
+
+   31 FUNC_VARS: FUNC_VARS ',' ID ':' . ID_TYPE
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+    ARRAY    shift, and go to state 31
+
+    ID_TYPE      go to state 167
+    BASIC_TYPES  go to state 33
+
+
+state 160
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG . STMTS END ID ';'
+
+    $default  reduce using rule 34 (STMTS)
+
+    STMTS  go to state 168
+
+
+state 161
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' OF . BASIC_TYPES
+
+    BOOLEAN  shift, and go to state 27
+    REAL     shift, and go to state 28
+    STRING   shift, and go to state 29
+    INTEGER  shift, and go to state 30
+
+    BASIC_TYPES  go to state 169
+
+
+state 162
+
+   46 STMTS: STMTS WHILE '(' EXPR ')' DO STMTS END . ';'
+
+    ';'  shift, and go to state 170
+
+
+state 163
+
+   45 STMTS: STMTS IF '(' EXPR ')' THEN STMTS END . ';'
+
+    ';'  shift, and go to state 171
+
+
+state 164
+
+   44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE . STMTS END ';'
+
+    $default  reduce using rule 34 (STMTS)
+
+    STMTS  go to state 172
+
+
+state 165
+
+   38 STMTS: STMTS ID '[' EXPR ']' EQ EXPR ';' .
+
+    $default  reduce using rule 38 (STMTS)
+
+
+state 166
+
+   37 STMTS: STMTS ID '[' EXPR ']' ASSIGN EXPR ';' .
+
+    $default  reduce using rule 37 (STMTS)
+
+
+state 167
+
+   31 FUNC_VARS: FUNC_VARS ',' ID ':' ID_TYPE .
+
+    $default  reduce using rule 31 (FUNC_VARS)
+
+
+state 168
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS . END ID ';'
+   35 STMTS: STMTS . ID ASSIGN EXPR ';'
+   36      | STMTS . ID EQ EXPR ';'
+   37      | STMTS . ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS . ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS . PRINT EXPR ';'
+   40      | STMTS . PRINTLN EXPR ';'
+   41      | STMTS . READ ID ';'
+   42      | STMTS . RETURN ';'
+   43      | STMTS . RETURN EXPR ';'
+   44      | STMTS . IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS . IF '(' EXPR ')' THEN STMTS END ';'
+   46      | STMTS . WHILE '(' EXPR ')' DO STMTS END ';'
+   47      | STMTS . ID '(' ARG_LIST ')' ';'
+   48      | STMTS . ID ';'
+
+    END      shift, and go to state 173
+    RETURN   shift, and go to state 44
+    WHILE    shift, and go to state 45
+    IF       shift, and go to state 46
+    ID       shift, and go to state 47
+    PRINT    shift, and go to state 48
+    PRINTLN  shift, and go to state 49
+    READ     shift, and go to state 50
+
+
+state 169
+
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' OF BASIC_TYPES .
+
+    $default  reduce using rule 10 (ID_TYPE)
+
+
+state 170
+
+   46 STMTS: STMTS WHILE '(' EXPR ')' DO STMTS END ';' .
+
+    $default  reduce using rule 46 (STMTS)
+
+
+state 171
+
+   45 STMTS: STMTS IF '(' EXPR ')' THEN STMTS END ';' .
+
+    $default  reduce using rule 45 (STMTS)
+
+
+state 172
+
+   35 STMTS: STMTS . ID ASSIGN EXPR ';'
+   36      | STMTS . ID EQ EXPR ';'
+   37      | STMTS . ID '[' EXPR ']' ASSIGN EXPR ';'
+   38      | STMTS . ID '[' EXPR ']' EQ EXPR ';'
+   39      | STMTS . PRINT EXPR ';'
+   40      | STMTS . PRINTLN EXPR ';'
+   41      | STMTS . READ ID ';'
+   42      | STMTS . RETURN ';'
+   43      | STMTS . RETURN EXPR ';'
+   44      | STMTS . IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
+   44      | STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS . END ';'
+   45      | STMTS . IF '(' EXPR ')' THEN STMTS END ';'
+   46      | STMTS . WHILE '(' EXPR ')' DO STMTS END ';'
+   47      | STMTS . ID '(' ARG_LIST ')' ';'
+   48      | STMTS . ID ';'
+
+    END      shift, and go to state 174
+    RETURN   shift, and go to state 44
+    WHILE    shift, and go to state 45
+    IF       shift, and go to state 46
+    ID       shift, and go to state 47
+    PRINT    shift, and go to state 48
+    PRINTLN  shift, and go to state 49
+    READ     shift, and go to state 50
+
+
+state 173
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END . ID ';'
+
+    ID  shift, and go to state 175
+
+
+state 174
+
+   44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS END . ';'
+
+    ';'  shift, and go to state 176
+
+
+state 175
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID . ';'
+
+    ';'  shift, and go to state 177
+
+
+state 176
+
+   44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';' .
+
+    $default  reduce using rule 44 (STMTS)
+
+
+state 177
+
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';' .
+
+    $default  reduce using rule 27 (FUNC_DECL)
