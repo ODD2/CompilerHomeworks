@@ -40,8 +40,8 @@ void yyerror(const char *s){
 #define PUT(t) {cout << #t << " " ;}
 #define Alert(t) 	{cout << "{!" << (t) << "!}";}
 #define Trail(t)	{cout << " <--{" <<  (t) << "}";}
-#define Error(t)	{ errorMsg +="[Error]"+to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
-#define Warn(t)		{ warnMsg +="[Warning]"+ to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
+#define Error(t)	{ errorMsg +="[ERROR] "+to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
+#define Warn(t)		{ warnMsg +="[WARN] "+ to_string(lineno)+"@"+"("+ to_string(charno)+ "): " + t + ".\n"; }
 
 std::string  errorMsg = "";
 std::string  warnMsg = "";
@@ -791,7 +791,10 @@ ARG_LIST: EXPR {
 	}
 
 
-EXPR: EXPR '+' EXPR {
+EXPR: '(' EXPR ')' {
+		$$ = $2;
+		}
+	|  EXPR '+' EXPR {
 		if($1.type==TokenType::vint && $3.type==TokenType::vint){
 				$$.type = TokenType::vint;
 				$$._int = $1._int + $3._int;

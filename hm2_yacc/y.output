@@ -92,47 +92,48 @@ Grammar
    49 ARG_LIST: EXPR
    50         | ARG_LIST ',' EXPR
 
-   51 EXPR: EXPR '+' EXPR
-   52     | EXPR '-' EXPR
-   53     | EXPR '*' EXPR
-   54     | EXPR '/' EXPR
-   55     | EXPR '%' EXPR
-   56     | '-' EXPR
-   57     | EXPR LT EXPR
-   58     | EXPR LEQ EXPR
-   59     | EXPR EQ EXPR
-   60     | EXPR GEQ EXPR
-   61     | EXPR GT EXPR
-   62     | EXPR NEQ EXPR
-   63     | EXPR ANDL EXPR
-   64     | EXPR ORL EXPR
-   65     | NOTL EXPR
-   66     | ID '[' EXPR ']'
-   67     | ID '(' ARG_LIST ')'
-   68     | ID
-   69     | INTEGERV
-   70     | REALV
-   71     | TRUE
-   72     | FALSE
-   73     | STRINGV
+   51 EXPR: '(' EXPR ')'
+   52     | EXPR '+' EXPR
+   53     | EXPR '-' EXPR
+   54     | EXPR '*' EXPR
+   55     | EXPR '/' EXPR
+   56     | EXPR '%' EXPR
+   57     | '-' EXPR
+   58     | EXPR LT EXPR
+   59     | EXPR LEQ EXPR
+   60     | EXPR EQ EXPR
+   61     | EXPR GEQ EXPR
+   62     | EXPR GT EXPR
+   63     | EXPR NEQ EXPR
+   64     | EXPR ANDL EXPR
+   65     | EXPR ORL EXPR
+   66     | NOTL EXPR
+   67     | ID '[' EXPR ']'
+   68     | ID '(' ARG_LIST ')'
+   69     | ID
+   70     | INTEGERV
+   71     | REALV
+   72     | TRUE
+   73     | FALSE
+   74     | STRINGV
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'%' (37) 55
-'(' (40) 29 44 45 46 47 67
-')' (41) 29 44 45 46 47 67
-'*' (42) 53
-'+' (43) 51
+'%' (37) 56
+'(' (40) 29 44 45 46 47 51 68
+')' (41) 29 44 45 46 47 51 68
+'*' (42) 54
+'+' (43) 52
 ',' (44) 9 10 31 50
-'-' (45) 52 56
+'-' (45) 53 57
 '.' (46) 1
-'/' (47) 54
+'/' (47) 55
 ':' (58) 6 7 30 31 33
 ';' (59) 5 6 7 16 17 18 27 35 36 37 38 39 40 41 42 43 44 45 46 47 48
-'[' (91) 10 37 38 66
-']' (93) 10 37 38 66
+'[' (91) 10 37 38 67
+']' (93) 10 37 38 67
 error (256)
 MODULE (258) 1
 PROCEDURE (259) 27
@@ -163,26 +164,26 @@ STRING (283) 15
 INTEGER (284) 13
 ARRAY (285) 10
 OF (286) 10
-TRUE (287) 21 71
-FALSE (288) 22 72
-STRINGV (289) 23 73
-REALV (290) 20 70
-INTEGERV (291) 10 19 69
-ID (292) 1 8 9 17 18 27 30 31 35 36 37 38 41 47 48 66 67 68
+TRUE (287) 21 72
+FALSE (288) 22 73
+STRINGV (289) 23 74
+REALV (290) 20 71
+INTEGERV (291) 10 19 70
+ID (292) 1 8 9 17 18 27 30 31 35 36 37 38 41 47 48 67 68 69
 INTID (293)
 REALID (294)
 BOOLID (295)
 STRID (296)
 FUNCID (297)
-LT (298) 57
-LEQ (299) 58
-GT (300) 61
-GEQ (301) 60
-EQ (302) 17 18 36 38 59
-NEQ (303) 62
-ANDL (304) 63
-ORL (305) 64
-NOTL (306) 65
+LT (298) 58
+LEQ (299) 59
+GT (300) 62
+GEQ (301) 61
+EQ (302) 17 18 36 38 60
+NEQ (303) 63
+ANDL (304) 64
+ORL (305) 65
+NOTL (306) 66
 ASSIGN (307) 35 37
 PRINT (308) 39
 PRINTLN (309) 40
@@ -229,11 +230,11 @@ STMTS (88)
     on left: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48,
     on right: 1 27 35 36 37 38 39 40 41 42 43 44 45 46 47 48
 ARG_LIST (89)
-    on left: 49 50, on right: 47 50 67
+    on left: 49 50, on right: 47 50 68
 EXPR (90)
     on left: 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68
-    69 70 71 72 73, on right: 35 36 37 38 39 40 43 44 45 46 49 50 51
-    52 53 54 55 56 57 58 59 60 61 62 63 64 65 66
+    69 70 71 72 73 74, on right: 35 36 37 38 39 40 43 44 45 46 49 50
+    51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67
 
 
 state 0
@@ -643,15 +644,16 @@ state 44
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
     ';'       shift, and go to state 66
+    '('       shift, and go to state 67
 
-    EXPR  go to state 67
+    EXPR  go to state 68
 
 
 state 45
 
    46 STMTS: STMTS WHILE . '(' EXPR ')' DO STMTS END ';'
 
-    '('  shift, and go to state 68
+    '('  shift, and go to state 69
 
 
 state 46
@@ -659,7 +661,7 @@ state 46
    44 STMTS: STMTS IF . '(' EXPR ')' THEN STMTS ELSE STMTS END ';'
    45      | STMTS IF . '(' EXPR ')' THEN STMTS END ';'
 
-    '('  shift, and go to state 69
+    '('  shift, and go to state 70
 
 
 state 47
@@ -671,11 +673,11 @@ state 47
    47      | STMTS ID . '(' ARG_LIST ')' ';'
    48      | STMTS ID . ';'
 
-    EQ      shift, and go to state 70
-    ASSIGN  shift, and go to state 71
-    ';'     shift, and go to state 72
-    '['     shift, and go to state 73
-    '('     shift, and go to state 74
+    EQ      shift, and go to state 71
+    ASSIGN  shift, and go to state 72
+    ';'     shift, and go to state 73
+    '['     shift, and go to state 74
+    '('     shift, and go to state 75
 
 
 state 48
@@ -690,8 +692,9 @@ state 48
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 75
+    EXPR  go to state 76
 
 
 state 49
@@ -706,33 +709,34 @@ state 49
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 76
+    EXPR  go to state 77
 
 
 state 50
 
    41 STMTS: STMTS READ . ID ';'
 
-    ID  shift, and go to state 77
+    ID  shift, and go to state 78
 
 
 state 51
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID . FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
 
-    '('  shift, and go to state 78
+    '('  shift, and go to state 79
 
     $default  reduce using rule 28 (FUNC_ARGS)
 
-    FUNC_ARGS  go to state 79
+    FUNC_ARGS  go to state 80
 
 
 state 52
 
    10 ID_TYPE: ARRAY '[' . INTEGERV ',' INTEGERV ']' OF BASIC_TYPES
 
-    INTEGERV  shift, and go to state 80
+    INTEGERV  shift, and go to state 81
 
 
 state 53
@@ -767,59 +771,59 @@ state 57
 
     1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID . '.'
 
-    '.'  shift, and go to state 81
+    '.'  shift, and go to state 82
 
 
 state 58
 
-   71 EXPR: TRUE .
-
-    $default  reduce using rule 71 (EXPR)
-
-
-state 59
-
-   72 EXPR: FALSE .
+   72 EXPR: TRUE .
 
     $default  reduce using rule 72 (EXPR)
 
 
-state 60
+state 59
 
-   73 EXPR: STRINGV .
+   73 EXPR: FALSE .
 
     $default  reduce using rule 73 (EXPR)
 
 
+state 60
+
+   74 EXPR: STRINGV .
+
+    $default  reduce using rule 74 (EXPR)
+
+
 state 61
 
-   70 EXPR: REALV .
+   71 EXPR: REALV .
 
-    $default  reduce using rule 70 (EXPR)
+    $default  reduce using rule 71 (EXPR)
 
 
 state 62
 
-   69 EXPR: INTEGERV .
+   70 EXPR: INTEGERV .
 
-    $default  reduce using rule 69 (EXPR)
+    $default  reduce using rule 70 (EXPR)
 
 
 state 63
 
-   66 EXPR: ID . '[' EXPR ']'
-   67     | ID . '(' ARG_LIST ')'
-   68     | ID .
+   67 EXPR: ID . '[' EXPR ']'
+   68     | ID . '(' ARG_LIST ')'
+   69     | ID .
 
-    '['  shift, and go to state 82
-    '('  shift, and go to state 83
+    '['  shift, and go to state 83
+    '('  shift, and go to state 84
 
-    $default  reduce using rule 68 (EXPR)
+    $default  reduce using rule 69 (EXPR)
 
 
 state 64
 
-   65 EXPR: NOTL . EXPR
+   66 EXPR: NOTL . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -829,13 +833,14 @@ state 64
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 84
+    EXPR  go to state 85
 
 
 state 65
 
-   56 EXPR: '-' . EXPR
+   57 EXPR: '-' . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -845,8 +850,9 @@ state 65
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 85
+    EXPR  go to state 86
 
 
 state 66
@@ -858,38 +864,55 @@ state 66
 
 state 67
 
-   43 STMTS: STMTS RETURN EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   51 EXPR: '(' . EXPR ')'
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 99
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
+
+    EXPR  go to state 87
 
 
 state 68
+
+   43 STMTS: STMTS RETURN EXPR . ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 101
+
+
+state 69
 
    46 STMTS: STMTS WHILE '(' . EXPR ')' DO STMTS END ';'
 
@@ -901,11 +924,12 @@ state 68
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 100
+    EXPR  go to state 102
 
 
-state 69
+state 70
 
    44 STMTS: STMTS IF '(' . EXPR ')' THEN STMTS ELSE STMTS END ';'
    45      | STMTS IF '(' . EXPR ')' THEN STMTS END ';'
@@ -918,11 +942,12 @@ state 69
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 101
+    EXPR  go to state 103
 
 
-state 70
+state 71
 
    36 STMTS: STMTS ID EQ . EXPR ';'
 
@@ -934,11 +959,12 @@ state 70
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 102
+    EXPR  go to state 104
 
 
-state 71
+state 72
 
    35 STMTS: STMTS ID ASSIGN . EXPR ';'
 
@@ -950,18 +976,19 @@ state 71
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 103
+    EXPR  go to state 105
 
 
-state 72
+state 73
 
    48 STMTS: STMTS ID ';' .
 
     $default  reduce using rule 48 (STMTS)
 
 
-state 73
+state 74
 
    37 STMTS: STMTS ID '[' . EXPR ']' ASSIGN EXPR ';'
    38      | STMTS ID '[' . EXPR ']' EQ EXPR ';'
@@ -974,11 +1001,12 @@ state 73
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 104
+    EXPR  go to state 106
 
 
-state 74
+state 75
 
    47 STMTS: STMTS ID '(' . ARG_LIST ')' ';'
 
@@ -990,137 +1018,122 @@ state 74
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    ARG_LIST  go to state 105
-    EXPR      go to state 106
-
-
-state 75
-
-   39 STMTS: STMTS PRINT EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 107
+    ARG_LIST  go to state 107
+    EXPR      go to state 108
 
 
 state 76
 
-   40 STMTS: STMTS PRINTLN EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   39 STMTS: STMTS PRINT EXPR . ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 108
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 109
 
 
 state 77
 
-   41 STMTS: STMTS READ ID . ';'
+   40 STMTS: STMTS PRINTLN EXPR . ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    ';'  shift, and go to state 109
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 110
 
 
 state 78
 
-   29 FUNC_ARGS: '(' . FUNC_VARS ')'
+   41 STMTS: STMTS READ ID . ';'
 
-    ID  shift, and go to state 110
-
-    FUNC_VARS  go to state 111
+    ';'  shift, and go to state 111
 
 
 state 79
 
-   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS . FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
+   29 FUNC_ARGS: '(' . FUNC_VARS ')'
 
-    ':'  shift, and go to state 112
+    ID  shift, and go to state 112
 
-    $default  reduce using rule 32 (FUNC_RET)
-
-    FUNC_RET  go to state 113
+    FUNC_VARS  go to state 113
 
 
 state 80
 
-   10 ID_TYPE: ARRAY '[' INTEGERV . ',' INTEGERV ']' OF BASIC_TYPES
+   27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS . FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';'
 
-    ','  shift, and go to state 114
+    ':'  shift, and go to state 114
+
+    $default  reduce using rule 32 (FUNC_RET)
+
+    FUNC_RET  go to state 115
 
 
 state 81
+
+   10 ID_TYPE: ARRAY '[' INTEGERV . ',' INTEGERV ']' OF BASIC_TYPES
+
+    ','  shift, and go to state 116
+
+
+state 82
 
     1 PROGRAM: MODULE ID VAR_CONST_DECL FUNC_DECL BEG STMTS END ID '.' .
 
     $default  reduce using rule 1 (PROGRAM)
 
 
-state 82
-
-   66 EXPR: ID '[' . EXPR ']'
-
-    TRUE      shift, and go to state 58
-    FALSE     shift, and go to state 59
-    STRINGV   shift, and go to state 60
-    REALV     shift, and go to state 61
-    INTEGERV  shift, and go to state 62
-    ID        shift, and go to state 63
-    NOTL      shift, and go to state 64
-    '-'       shift, and go to state 65
-
-    EXPR  go to state 115
-
-
 state 83
 
-   67 EXPR: ID '(' . ARG_LIST ')'
+   67 EXPR: ID '[' . EXPR ']'
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1130,70 +1143,14 @@ state 83
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
-
-    ARG_LIST  go to state 116
-    EXPR      go to state 106
-
-
-state 84
-
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-   65     | NOTL EXPR .
-
-    $default  reduce using rule 65 (EXPR)
-
-
-state 85
-
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   56     | '-' EXPR .
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-
-    $default  reduce using rule 56 (EXPR)
-
-
-state 86
-
-   57 EXPR: EXPR LT . EXPR
-
-    TRUE      shift, and go to state 58
-    FALSE     shift, and go to state 59
-    STRINGV   shift, and go to state 60
-    REALV     shift, and go to state 61
-    INTEGERV  shift, and go to state 62
-    ID        shift, and go to state 63
-    NOTL      shift, and go to state 64
-    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 117
 
 
-state 87
+state 84
 
-   58 EXPR: EXPR LEQ . EXPR
+   68 EXPR: ID '(' . ARG_LIST ')'
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1203,13 +1160,88 @@ state 87
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 118
+    ARG_LIST  go to state 118
+    EXPR      go to state 108
+
+
+state 85
+
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+   66     | NOTL EXPR .
+
+    $default  reduce using rule 66 (EXPR)
+
+
+state 86
+
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   57     | '-' EXPR .
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+
+    $default  reduce using rule 57 (EXPR)
+
+
+state 87
+
+   51 EXPR: '(' EXPR . ')'
+   52     | EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ')'   shift, and go to state 119
 
 
 state 88
 
-   61 EXPR: EXPR GT . EXPR
+   58 EXPR: EXPR LT . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1219,29 +1251,14 @@ state 88
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
-
-    EXPR  go to state 119
-
-
-state 89
-
-   60 EXPR: EXPR GEQ . EXPR
-
-    TRUE      shift, and go to state 58
-    FALSE     shift, and go to state 59
-    STRINGV   shift, and go to state 60
-    REALV     shift, and go to state 61
-    INTEGERV  shift, and go to state 62
-    ID        shift, and go to state 63
-    NOTL      shift, and go to state 64
-    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 120
 
 
-state 90
+state 89
 
-   59 EXPR: EXPR EQ . EXPR
+   59 EXPR: EXPR LEQ . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1251,13 +1268,14 @@ state 90
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 121
 
 
-state 91
+state 90
 
-   62 EXPR: EXPR NEQ . EXPR
+   62 EXPR: EXPR GT . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1267,13 +1285,14 @@ state 91
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 122
 
 
-state 92
+state 91
 
-   63 EXPR: EXPR ANDL . EXPR
+   61 EXPR: EXPR GEQ . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1283,13 +1302,14 @@ state 92
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 123
 
 
-state 93
+state 92
 
-   64 EXPR: EXPR ORL . EXPR
+   60 EXPR: EXPR EQ . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1299,13 +1319,14 @@ state 93
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 124
 
 
-state 94
+state 93
 
-   51 EXPR: EXPR '+' . EXPR
+   63 EXPR: EXPR NEQ . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1315,13 +1336,14 @@ state 94
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 125
 
 
-state 95
+state 94
 
-   52 EXPR: EXPR '-' . EXPR
+   64 EXPR: EXPR ANDL . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1331,13 +1353,14 @@ state 95
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 126
 
 
-state 96
+state 95
 
-   53 EXPR: EXPR '*' . EXPR
+   65 EXPR: EXPR ORL . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1347,13 +1370,14 @@ state 96
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 127
 
 
-state 97
+state 96
 
-   54 EXPR: EXPR '/' . EXPR
+   52 EXPR: EXPR '+' . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1363,13 +1387,14 @@ state 97
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 128
 
 
-state 98
+state 97
 
-   55 EXPR: EXPR '%' . EXPR
+   53 EXPR: EXPR '-' . EXPR
 
     TRUE      shift, and go to state 58
     FALSE     shift, and go to state 59
@@ -1379,265 +1404,317 @@ state 98
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
     EXPR  go to state 129
 
 
+state 98
+
+   54 EXPR: EXPR '*' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
+
+    EXPR  go to state 130
+
+
 state 99
+
+   55 EXPR: EXPR '/' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
+
+    EXPR  go to state 131
+
+
+state 100
+
+   56 EXPR: EXPR '%' . EXPR
+
+    TRUE      shift, and go to state 58
+    FALSE     shift, and go to state 59
+    STRINGV   shift, and go to state 60
+    REALV     shift, and go to state 61
+    INTEGERV  shift, and go to state 62
+    ID        shift, and go to state 63
+    NOTL      shift, and go to state 64
+    '-'       shift, and go to state 65
+    '('       shift, and go to state 67
+
+    EXPR  go to state 132
+
+
+state 101
 
    43 STMTS: STMTS RETURN EXPR ';' .
 
     $default  reduce using rule 43 (STMTS)
 
 
-state 100
-
-   46 STMTS: STMTS WHILE '(' EXPR . ')' DO STMTS END ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ')'   shift, and go to state 130
-
-
-state 101
-
-   44 STMTS: STMTS IF '(' EXPR . ')' THEN STMTS ELSE STMTS END ';'
-   45      | STMTS IF '(' EXPR . ')' THEN STMTS END ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ')'   shift, and go to state 131
-
-
 state 102
 
-   36 STMTS: STMTS ID EQ EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   46 STMTS: STMTS WHILE '(' EXPR . ')' DO STMTS END ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 132
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ')'   shift, and go to state 133
 
 
 state 103
 
-   35 STMTS: STMTS ID ASSIGN EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   44 STMTS: STMTS IF '(' EXPR . ')' THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR . ')' THEN STMTS END ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 133
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ')'   shift, and go to state 134
 
 
 state 104
 
-   37 STMTS: STMTS ID '[' EXPR . ']' ASSIGN EXPR ';'
-   38      | STMTS ID '[' EXPR . ']' EQ EXPR ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   36 STMTS: STMTS ID EQ EXPR . ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ']'   shift, and go to state 134
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 135
 
 
 state 105
 
-   47 STMTS: STMTS ID '(' ARG_LIST . ')' ';'
-   50 ARG_LIST: ARG_LIST . ',' EXPR
+   35 STMTS: STMTS ID ASSIGN EXPR . ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    ','  shift, and go to state 135
-    ')'  shift, and go to state 136
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 136
 
 
 state 106
 
-   49 ARG_LIST: EXPR .
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   37 STMTS: STMTS ID '[' EXPR . ']' ASSIGN EXPR ';'
+   38      | STMTS ID '[' EXPR . ']' EQ EXPR ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ']'   shift, and go to state 137
+
+
+state 107
+
+   47 STMTS: STMTS ID '(' ARG_LIST . ')' ';'
+   50 ARG_LIST: ARG_LIST . ',' EXPR
+
+    ','  shift, and go to state 138
+    ')'  shift, and go to state 139
+
+
+state 108
+
+   49 ARG_LIST: EXPR .
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
 
     $default  reduce using rule 49 (ARG_LIST)
 
 
-state 107
+state 109
 
    39 STMTS: STMTS PRINT EXPR ';' .
 
     $default  reduce using rule 39 (STMTS)
 
 
-state 108
+state 110
 
    40 STMTS: STMTS PRINTLN EXPR ';' .
 
     $default  reduce using rule 40 (STMTS)
 
 
-state 109
+state 111
 
    41 STMTS: STMTS READ ID ';' .
 
     $default  reduce using rule 41 (STMTS)
 
 
-state 110
+state 112
 
    30 FUNC_VARS: ID . ':' ID_TYPE
 
-    ':'  shift, and go to state 137
+    ':'  shift, and go to state 140
 
 
-state 111
+state 113
 
    29 FUNC_ARGS: '(' FUNC_VARS . ')'
    31 FUNC_VARS: FUNC_VARS . ',' ID ':' ID_TYPE
 
-    ','  shift, and go to state 138
-    ')'  shift, and go to state 139
+    ','  shift, and go to state 141
+    ')'  shift, and go to state 142
 
 
-state 112
+state 114
 
    33 FUNC_RET: ':' . ID_TYPE
 
@@ -1647,411 +1724,418 @@ state 112
     INTEGER  shift, and go to state 30
     ARRAY    shift, and go to state 31
 
-    ID_TYPE      go to state 140
+    ID_TYPE      go to state 143
     BASIC_TYPES  go to state 33
 
 
-state 113
+state 115
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET . @2 VAR_CONST_DECL BEG STMTS END ID ';'
 
     $default  reduce using rule 26 (@2)
 
-    @2  go to state 141
-
-
-state 114
-
-   10 ID_TYPE: ARRAY '[' INTEGERV ',' . INTEGERV ']' OF BASIC_TYPES
-
-    INTEGERV  shift, and go to state 142
-
-
-state 115
-
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-   66     | ID '[' EXPR . ']'
-
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ']'   shift, and go to state 143
+    @2  go to state 144
 
 
 state 116
 
-   50 ARG_LIST: ARG_LIST . ',' EXPR
-   67 EXPR: ID '(' ARG_LIST . ')'
+   10 ID_TYPE: ARRAY '[' INTEGERV ',' . INTEGERV ']' OF BASIC_TYPES
 
-    ','  shift, and go to state 135
-    ')'  shift, and go to state 144
+    INTEGERV  shift, and go to state 145
 
 
 state 117
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   57     | EXPR LT EXPR .
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+   67     | ID '[' EXPR . ']'
 
-    $default  reduce using rule 57 (EXPR)
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ']'   shift, and go to state 146
 
 
 state 118
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   58     | EXPR LEQ EXPR .
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   50 ARG_LIST: ARG_LIST . ',' EXPR
+   68 EXPR: ID '(' ARG_LIST . ')'
 
-    $default  reduce using rule 58 (EXPR)
+    ','  shift, and go to state 138
+    ')'  shift, and go to state 147
 
 
 state 119
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   61     | EXPR GT EXPR .
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   51 EXPR: '(' EXPR ')' .
 
-    $default  reduce using rule 61 (EXPR)
+    $default  reduce using rule 51 (EXPR)
 
 
 state 120
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   60     | EXPR GEQ EXPR .
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   58     | EXPR LT EXPR .
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    $default  reduce using rule 60 (EXPR)
+    $default  reduce using rule 58 (EXPR)
 
 
 state 121
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   59     | EXPR EQ EXPR .
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   59     | EXPR LEQ EXPR .
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
     $default  reduce using rule 59 (EXPR)
 
 
 state 122
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   62     | EXPR NEQ EXPR .
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   62     | EXPR GT EXPR .
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
     $default  reduce using rule 62 (EXPR)
 
 
 state 123
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   63     | EXPR ANDL EXPR .
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   61     | EXPR GEQ EXPR .
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT   shift, and go to state 86
-    LEQ  shift, and go to state 87
-    GT   shift, and go to state 88
-    GEQ  shift, and go to state 89
-    EQ   shift, and go to state 90
-    NEQ  shift, and go to state 91
-    '+'  shift, and go to state 94
-    '-'  shift, and go to state 95
-    '*'  shift, and go to state 96
-    '/'  shift, and go to state 97
-    '%'  shift, and go to state 98
-
-    $default  reduce using rule 63 (EXPR)
+    $default  reduce using rule 61 (EXPR)
 
 
 state 124
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
-   64     | EXPR ORL EXPR .
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   60     | EXPR EQ EXPR .
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT   shift, and go to state 86
-    LEQ  shift, and go to state 87
-    GT   shift, and go to state 88
-    GEQ  shift, and go to state 89
-    EQ   shift, and go to state 90
-    NEQ  shift, and go to state 91
-    '+'  shift, and go to state 94
-    '-'  shift, and go to state 95
-    '*'  shift, and go to state 96
-    '/'  shift, and go to state 97
-    '%'  shift, and go to state 98
-
-    $default  reduce using rule 64 (EXPR)
+    $default  reduce using rule 60 (EXPR)
 
 
 state 125
 
-   51 EXPR: EXPR . '+' EXPR
-   51     | EXPR '+' EXPR .
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   63     | EXPR NEQ EXPR .
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT   shift, and go to state 86
-    LEQ  shift, and go to state 87
-    GT   shift, and go to state 88
-    GEQ  shift, and go to state 89
-    EQ   shift, and go to state 90
-    NEQ  shift, and go to state 91
-    '*'  shift, and go to state 96
-    '/'  shift, and go to state 97
-    '%'  shift, and go to state 98
-
-    $default  reduce using rule 51 (EXPR)
+    $default  reduce using rule 63 (EXPR)
 
 
 state 126
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   52     | EXPR '-' EXPR .
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   64     | EXPR ANDL EXPR .
+   65     | EXPR . ORL EXPR
 
-    LT   shift, and go to state 86
-    LEQ  shift, and go to state 87
-    GT   shift, and go to state 88
-    GEQ  shift, and go to state 89
-    EQ   shift, and go to state 90
-    NEQ  shift, and go to state 91
-    '*'  shift, and go to state 96
-    '/'  shift, and go to state 97
-    '%'  shift, and go to state 98
+    LT   shift, and go to state 88
+    LEQ  shift, and go to state 89
+    GT   shift, and go to state 90
+    GEQ  shift, and go to state 91
+    EQ   shift, and go to state 92
+    NEQ  shift, and go to state 93
+    '+'  shift, and go to state 96
+    '-'  shift, and go to state 97
+    '*'  shift, and go to state 98
+    '/'  shift, and go to state 99
+    '%'  shift, and go to state 100
 
-    $default  reduce using rule 52 (EXPR)
+    $default  reduce using rule 64 (EXPR)
 
 
 state 127
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   53     | EXPR '*' EXPR .
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+   65     | EXPR ORL EXPR .
 
-    $default  reduce using rule 53 (EXPR)
+    LT   shift, and go to state 88
+    LEQ  shift, and go to state 89
+    GT   shift, and go to state 90
+    GEQ  shift, and go to state 91
+    EQ   shift, and go to state 92
+    NEQ  shift, and go to state 93
+    '+'  shift, and go to state 96
+    '-'  shift, and go to state 97
+    '*'  shift, and go to state 98
+    '/'  shift, and go to state 99
+    '%'  shift, and go to state 100
+
+    $default  reduce using rule 65 (EXPR)
 
 
 state 128
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   54     | EXPR '/' EXPR .
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   52     | EXPR '+' EXPR .
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    $default  reduce using rule 54 (EXPR)
+    LT   shift, and go to state 88
+    LEQ  shift, and go to state 89
+    GT   shift, and go to state 90
+    GEQ  shift, and go to state 91
+    EQ   shift, and go to state 92
+    NEQ  shift, and go to state 93
+    '*'  shift, and go to state 98
+    '/'  shift, and go to state 99
+    '%'  shift, and go to state 100
+
+    $default  reduce using rule 52 (EXPR)
 
 
 state 129
 
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   55     | EXPR '%' EXPR .
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   53     | EXPR '-' EXPR .
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    $default  reduce using rule 55 (EXPR)
+    LT   shift, and go to state 88
+    LEQ  shift, and go to state 89
+    GT   shift, and go to state 90
+    GEQ  shift, and go to state 91
+    EQ   shift, and go to state 92
+    NEQ  shift, and go to state 93
+    '*'  shift, and go to state 98
+    '/'  shift, and go to state 99
+    '%'  shift, and go to state 100
+
+    $default  reduce using rule 53 (EXPR)
 
 
 state 130
 
-   46 STMTS: STMTS WHILE '(' EXPR ')' . DO STMTS END ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   54     | EXPR '*' EXPR .
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    DO  shift, and go to state 145
+    $default  reduce using rule 54 (EXPR)
 
 
 state 131
 
-   44 STMTS: STMTS IF '(' EXPR ')' . THEN STMTS ELSE STMTS END ';'
-   45      | STMTS IF '(' EXPR ')' . THEN STMTS END ';'
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   55     | EXPR '/' EXPR .
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    THEN  shift, and go to state 146
+    $default  reduce using rule 55 (EXPR)
 
 
 state 132
+
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   56     | EXPR '%' EXPR .
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
+
+    $default  reduce using rule 56 (EXPR)
+
+
+state 133
+
+   46 STMTS: STMTS WHILE '(' EXPR ')' . DO STMTS END ';'
+
+    DO  shift, and go to state 148
+
+
+state 134
+
+   44 STMTS: STMTS IF '(' EXPR ')' . THEN STMTS ELSE STMTS END ';'
+   45      | STMTS IF '(' EXPR ')' . THEN STMTS END ';'
+
+    THEN  shift, and go to state 149
+
+
+state 135
 
    36 STMTS: STMTS ID EQ EXPR ';' .
 
     $default  reduce using rule 36 (STMTS)
 
 
-state 133
+state 136
 
    35 STMTS: STMTS ID ASSIGN EXPR ';' .
 
     $default  reduce using rule 35 (STMTS)
 
 
-state 134
+state 137
 
    37 STMTS: STMTS ID '[' EXPR ']' . ASSIGN EXPR ';'
    38      | STMTS ID '[' EXPR ']' . EQ EXPR ';'
 
-    EQ      shift, and go to state 147
-    ASSIGN  shift, and go to state 148
+    EQ      shift, and go to state 150
+    ASSIGN  shift, and go to state 151
 
 
-state 135
+state 138
 
    50 ARG_LIST: ARG_LIST ',' . EXPR
 
@@ -2063,18 +2147,19 @@ state 135
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 149
+    EXPR  go to state 152
 
 
-state 136
+state 139
 
    47 STMTS: STMTS ID '(' ARG_LIST ')' . ';'
 
-    ';'  shift, and go to state 150
+    ';'  shift, and go to state 153
 
 
-state 137
+state 140
 
    30 FUNC_VARS: ID ':' . ID_TYPE
 
@@ -2084,81 +2169,81 @@ state 137
     INTEGER  shift, and go to state 30
     ARRAY    shift, and go to state 31
 
-    ID_TYPE      go to state 151
+    ID_TYPE      go to state 154
     BASIC_TYPES  go to state 33
 
 
-state 138
+state 141
 
    31 FUNC_VARS: FUNC_VARS ',' . ID ':' ID_TYPE
 
-    ID  shift, and go to state 152
+    ID  shift, and go to state 155
 
 
-state 139
+state 142
 
    29 FUNC_ARGS: '(' FUNC_VARS ')' .
 
     $default  reduce using rule 29 (FUNC_ARGS)
 
 
-state 140
+state 143
 
    33 FUNC_RET: ':' ID_TYPE .
 
     $default  reduce using rule 33 (FUNC_RET)
 
 
-state 141
+state 144
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 . VAR_CONST_DECL BEG STMTS END ID ';'
 
     $default  reduce using rule 2 (VAR_CONST_DECL)
 
-    VAR_CONST_DECL  go to state 153
+    VAR_CONST_DECL  go to state 156
 
 
-state 142
+state 145
 
    10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV . ']' OF BASIC_TYPES
 
-    ']'  shift, and go to state 154
+    ']'  shift, and go to state 157
 
 
-state 143
+state 146
 
-   66 EXPR: ID '[' EXPR ']' .
-
-    $default  reduce using rule 66 (EXPR)
-
-
-state 144
-
-   67 EXPR: ID '(' ARG_LIST ')' .
+   67 EXPR: ID '[' EXPR ']' .
 
     $default  reduce using rule 67 (EXPR)
 
 
-state 145
+state 147
+
+   68 EXPR: ID '(' ARG_LIST ')' .
+
+    $default  reduce using rule 68 (EXPR)
+
+
+state 148
 
    46 STMTS: STMTS WHILE '(' EXPR ')' DO . STMTS END ';'
 
     $default  reduce using rule 34 (STMTS)
 
-    STMTS  go to state 155
+    STMTS  go to state 158
 
 
-state 146
+state 149
 
    44 STMTS: STMTS IF '(' EXPR ')' THEN . STMTS ELSE STMTS END ';'
    45      | STMTS IF '(' EXPR ')' THEN . STMTS END ';'
 
     $default  reduce using rule 34 (STMTS)
 
-    STMTS  go to state 156
+    STMTS  go to state 159
 
 
-state 147
+state 150
 
    38 STMTS: STMTS ID '[' EXPR ']' EQ . EXPR ';'
 
@@ -2170,11 +2255,12 @@ state 147
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 157
+    EXPR  go to state 160
 
 
-state 148
+state 151
 
    37 STMTS: STMTS ID '[' EXPR ']' ASSIGN . EXPR ';'
 
@@ -2186,72 +2272,73 @@ state 148
     ID        shift, and go to state 63
     NOTL      shift, and go to state 64
     '-'       shift, and go to state 65
+    '('       shift, and go to state 67
 
-    EXPR  go to state 158
+    EXPR  go to state 161
 
 
-state 149
+state 152
 
    50 ARG_LIST: ARG_LIST ',' EXPR .
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
 
     $default  reduce using rule 50 (ARG_LIST)
 
 
-state 150
+state 153
 
    47 STMTS: STMTS ID '(' ARG_LIST ')' ';' .
 
     $default  reduce using rule 47 (STMTS)
 
 
-state 151
+state 154
 
    30 FUNC_VARS: ID ':' ID_TYPE .
 
     $default  reduce using rule 30 (FUNC_VARS)
 
 
-state 152
+state 155
 
    31 FUNC_VARS: FUNC_VARS ',' ID . ':' ID_TYPE
 
-    ':'  shift, and go to state 159
+    ':'  shift, and go to state 162
 
 
-state 153
+state 156
 
     3 VAR_CONST_DECL: VAR_CONST_DECL . VAR_DECL
     4               | VAR_CONST_DECL . CONST_DECL
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL . BEG STMTS END ID ';'
 
-    BEG    shift, and go to state 160
+    BEG    shift, and go to state 163
     VAR    shift, and go to state 6
     CONST  shift, and go to state 7
 
@@ -2259,14 +2346,14 @@ state 153
     CONST_DECL  go to state 9
 
 
-state 154
+state 157
 
    10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' . OF BASIC_TYPES
 
-    OF  shift, and go to state 161
+    OF  shift, and go to state 164
 
 
-state 155
+state 158
 
    35 STMTS: STMTS . ID ASSIGN EXPR ';'
    36      | STMTS . ID EQ EXPR ';'
@@ -2284,7 +2371,7 @@ state 155
    47      | STMTS . ID '(' ARG_LIST ')' ';'
    48      | STMTS . ID ';'
 
-    END      shift, and go to state 162
+    END      shift, and go to state 165
     RETURN   shift, and go to state 44
     WHILE    shift, and go to state 45
     IF       shift, and go to state 46
@@ -2294,7 +2381,7 @@ state 155
     READ     shift, and go to state 50
 
 
-state 156
+state 159
 
    35 STMTS: STMTS . ID ASSIGN EXPR ';'
    36      | STMTS . ID EQ EXPR ';'
@@ -2313,84 +2400,84 @@ state 156
    47      | STMTS . ID '(' ARG_LIST ')' ';'
    48      | STMTS . ID ';'
 
-    END      shift, and go to state 163
+    END      shift, and go to state 166
     RETURN   shift, and go to state 44
     WHILE    shift, and go to state 45
     IF       shift, and go to state 46
-    ELSE     shift, and go to state 164
+    ELSE     shift, and go to state 167
     ID       shift, and go to state 47
     PRINT    shift, and go to state 48
     PRINTLN  shift, and go to state 49
     READ     shift, and go to state 50
 
 
-state 157
+state 160
 
    38 STMTS: STMTS ID '[' EXPR ']' EQ EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 165
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 168
 
 
-state 158
+state 161
 
    37 STMTS: STMTS ID '[' EXPR ']' ASSIGN EXPR . ';'
-   51 EXPR: EXPR . '+' EXPR
-   52     | EXPR . '-' EXPR
-   53     | EXPR . '*' EXPR
-   54     | EXPR . '/' EXPR
-   55     | EXPR . '%' EXPR
-   57     | EXPR . LT EXPR
-   58     | EXPR . LEQ EXPR
-   59     | EXPR . EQ EXPR
-   60     | EXPR . GEQ EXPR
-   61     | EXPR . GT EXPR
-   62     | EXPR . NEQ EXPR
-   63     | EXPR . ANDL EXPR
-   64     | EXPR . ORL EXPR
+   52 EXPR: EXPR . '+' EXPR
+   53     | EXPR . '-' EXPR
+   54     | EXPR . '*' EXPR
+   55     | EXPR . '/' EXPR
+   56     | EXPR . '%' EXPR
+   58     | EXPR . LT EXPR
+   59     | EXPR . LEQ EXPR
+   60     | EXPR . EQ EXPR
+   61     | EXPR . GEQ EXPR
+   62     | EXPR . GT EXPR
+   63     | EXPR . NEQ EXPR
+   64     | EXPR . ANDL EXPR
+   65     | EXPR . ORL EXPR
 
-    LT    shift, and go to state 86
-    LEQ   shift, and go to state 87
-    GT    shift, and go to state 88
-    GEQ   shift, and go to state 89
-    EQ    shift, and go to state 90
-    NEQ   shift, and go to state 91
-    ANDL  shift, and go to state 92
-    ORL   shift, and go to state 93
-    '+'   shift, and go to state 94
-    '-'   shift, and go to state 95
-    '*'   shift, and go to state 96
-    '/'   shift, and go to state 97
-    '%'   shift, and go to state 98
-    ';'   shift, and go to state 166
+    LT    shift, and go to state 88
+    LEQ   shift, and go to state 89
+    GT    shift, and go to state 90
+    GEQ   shift, and go to state 91
+    EQ    shift, and go to state 92
+    NEQ   shift, and go to state 93
+    ANDL  shift, and go to state 94
+    ORL   shift, and go to state 95
+    '+'   shift, and go to state 96
+    '-'   shift, and go to state 97
+    '*'   shift, and go to state 98
+    '/'   shift, and go to state 99
+    '%'   shift, and go to state 100
+    ';'   shift, and go to state 169
 
 
-state 159
+state 162
 
    31 FUNC_VARS: FUNC_VARS ',' ID ':' . ID_TYPE
 
@@ -2400,20 +2487,20 @@ state 159
     INTEGER  shift, and go to state 30
     ARRAY    shift, and go to state 31
 
-    ID_TYPE      go to state 167
+    ID_TYPE      go to state 170
     BASIC_TYPES  go to state 33
 
 
-state 160
+state 163
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG . STMTS END ID ';'
 
     $default  reduce using rule 34 (STMTS)
 
-    STMTS  go to state 168
+    STMTS  go to state 171
 
 
-state 161
+state 164
 
    10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' OF . BASIC_TYPES
 
@@ -2422,54 +2509,54 @@ state 161
     STRING   shift, and go to state 29
     INTEGER  shift, and go to state 30
 
-    BASIC_TYPES  go to state 169
+    BASIC_TYPES  go to state 172
 
 
-state 162
+state 165
 
    46 STMTS: STMTS WHILE '(' EXPR ')' DO STMTS END . ';'
 
-    ';'  shift, and go to state 170
+    ';'  shift, and go to state 173
 
 
-state 163
+state 166
 
    45 STMTS: STMTS IF '(' EXPR ')' THEN STMTS END . ';'
 
-    ';'  shift, and go to state 171
+    ';'  shift, and go to state 174
 
 
-state 164
+state 167
 
    44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE . STMTS END ';'
 
     $default  reduce using rule 34 (STMTS)
 
-    STMTS  go to state 172
+    STMTS  go to state 175
 
 
-state 165
+state 168
 
    38 STMTS: STMTS ID '[' EXPR ']' EQ EXPR ';' .
 
     $default  reduce using rule 38 (STMTS)
 
 
-state 166
+state 169
 
    37 STMTS: STMTS ID '[' EXPR ']' ASSIGN EXPR ';' .
 
     $default  reduce using rule 37 (STMTS)
 
 
-state 167
+state 170
 
    31 FUNC_VARS: FUNC_VARS ',' ID ':' ID_TYPE .
 
     $default  reduce using rule 31 (FUNC_VARS)
 
 
-state 168
+state 171
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS . END ID ';'
    35 STMTS: STMTS . ID ASSIGN EXPR ';'
@@ -2487,7 +2574,7 @@ state 168
    47      | STMTS . ID '(' ARG_LIST ')' ';'
    48      | STMTS . ID ';'
 
-    END      shift, and go to state 173
+    END      shift, and go to state 176
     RETURN   shift, and go to state 44
     WHILE    shift, and go to state 45
     IF       shift, and go to state 46
@@ -2497,28 +2584,28 @@ state 168
     READ     shift, and go to state 50
 
 
-state 169
+state 172
 
    10 ID_TYPE: ARRAY '[' INTEGERV ',' INTEGERV ']' OF BASIC_TYPES .
 
     $default  reduce using rule 10 (ID_TYPE)
 
 
-state 170
+state 173
 
    46 STMTS: STMTS WHILE '(' EXPR ')' DO STMTS END ';' .
 
     $default  reduce using rule 46 (STMTS)
 
 
-state 171
+state 174
 
    45 STMTS: STMTS IF '(' EXPR ')' THEN STMTS END ';' .
 
     $default  reduce using rule 45 (STMTS)
 
 
-state 172
+state 175
 
    35 STMTS: STMTS . ID ASSIGN EXPR ';'
    36      | STMTS . ID EQ EXPR ';'
@@ -2536,7 +2623,7 @@ state 172
    47      | STMTS . ID '(' ARG_LIST ')' ';'
    48      | STMTS . ID ';'
 
-    END      shift, and go to state 174
+    END      shift, and go to state 177
     RETURN   shift, and go to state 44
     WHILE    shift, and go to state 45
     IF       shift, and go to state 46
@@ -2546,35 +2633,35 @@ state 172
     READ     shift, and go to state 50
 
 
-state 173
+state 176
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END . ID ';'
 
-    ID  shift, and go to state 175
+    ID  shift, and go to state 178
 
 
-state 174
+state 177
 
    44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS END . ';'
 
-    ';'  shift, and go to state 176
+    ';'  shift, and go to state 179
 
 
-state 175
+state 178
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID . ';'
 
-    ';'  shift, and go to state 177
+    ';'  shift, and go to state 180
 
 
-state 176
+state 179
 
    44 STMTS: STMTS IF '(' EXPR ')' THEN STMTS ELSE STMTS END ';' .
 
     $default  reduce using rule 44 (STMTS)
 
 
-state 177
+state 180
 
    27 FUNC_DECL: FUNC_DECL @1 PROCEDURE ID FUNC_ARGS FUNC_RET @2 VAR_CONST_DECL BEG STMTS END ID ';' .
 

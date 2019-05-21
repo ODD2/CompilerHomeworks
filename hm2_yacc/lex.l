@@ -11,7 +11,6 @@
 #define MAX_LINE_LENG 256
 
 
- enum VARTYPE idFindType(char *,void **);
  //Global Variables
  int lineno = 1;
  int charno = 0;
@@ -48,7 +47,9 @@ stringd \"[^\"]*\"\"[^\"]*\"
 id  [a-zA-Z]([0-9a-zA-Z]*)
 
 	/* Line Comments */
+
 lcomments "//"[^\n]*
+
 	/* Block Comments */
 bcomments \(\*
 bcommente \*\)
