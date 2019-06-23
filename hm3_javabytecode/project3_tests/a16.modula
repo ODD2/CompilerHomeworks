@@ -1,0 +1,23 @@
+(*
+ * Example with Functions
+ *)
+
+module a16
+
+// constants
+const x = 5;
+// variables
+var c : integer;
+procedure layer(a:integer) : integer
+begin
+  if (a = 1) then
+     return 1;
+  end;
+  return a * layer(a - 1);
+end layer;
+   
+// main function
+begin
+  c := layer(x);
+  println c;
+end a16.

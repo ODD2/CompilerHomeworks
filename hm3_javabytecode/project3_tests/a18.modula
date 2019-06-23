@@ -1,0 +1,26 @@
+(*
+ * Example with Functions
+ *)
+
+module a18
+
+// constants
+const a = 4;
+
+// variables
+var c, d: integer;
+    
+    
+// main function
+begin
+  d := 3;
+   // c = 5
+  c := a;
+  while ( d > 1) do
+    if (c < 10) then
+       d := d - 1;
+       print c;
+    end;
+  end;
+  println d;
+end a18.

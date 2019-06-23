@@ -1,0 +1,27 @@
+(*
+ * Example with Functions
+ *)
+
+module a04
+
+// constants
+const x = 90;
+      y = 15;
+// variables
+var c: integer;
+    
+// procedure declaration
+procedure div(a:integer, b:integer) : integer
+begin
+  return a / b;
+end div;
+    
+// main function
+begin
+  c := div(x, y);
+  if (c > 10) then
+    println -c;
+  else 
+    println c;
+  end;
+end a04.

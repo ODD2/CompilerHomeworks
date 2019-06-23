@@ -1,0 +1,1 @@
+class H{   method public static void main (java.lang.String[])  max_stack 2  {     getstatic java.io.PrintStream java.lang.System.out    ldc "Hello World!"    invokevirtual void java.io.PrintStream.println(java.lang.String)    return  }}

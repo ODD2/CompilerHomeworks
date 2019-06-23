@@ -1,0 +1,25 @@
+(*
+ * Example with Functions
+ *)
+
+module a11
+
+// constants
+const x = 100;
+// variables
+var c: integer;
+    
+procedure sub(a:integer, b:integer) : integer
+begin
+  return a - b;
+end sub;
+    
+// main function
+begin
+  c := sub(x, 50);
+  if (true) then
+    println -c;
+  else 
+    println c;
+  end;
+end a11.

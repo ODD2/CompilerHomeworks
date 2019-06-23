@@ -1,0 +1,16 @@
+(* Sigma.modula
+ *
+ * Compute sum = 1 + 2 + ... + n
+ *)
+
+module Bonus5
+
+  // constants and variables
+  const n = 10;
+  var a: array [0,10] of integer;
+
+begin
+  a[3] := 423;
+  a[4] := 52;
+  println a[4];
+end Bonus5.

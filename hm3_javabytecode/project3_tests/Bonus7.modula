@@ -1,0 +1,14 @@
+(* Sigma.modula
+ *
+ * Compute sum = 1 + 2 + ... + n
+ *)
+
+module Bonus7
+
+  // constants and variables
+  var a: integer;
+
+begin
+  read a;
+  println a;
+end Bonus7.

@@ -1,0 +1,7 @@
+module Bonus4 
+	var a : real;
+begin
+	a:= 3.14;
+        a:= a + a;
+	println a;
+end Bonus4.

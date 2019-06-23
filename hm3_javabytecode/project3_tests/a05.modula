@@ -1,0 +1,19 @@
+(*
+ * Example with Functions
+ *)
+
+module a05
+
+// procedure declaration
+procedure add()
+const x = 13;
+var z: integer;
+begin
+  z := x + 23;
+  println -z;
+end add;
+    
+// main function
+begin
+  add();
+end a05.

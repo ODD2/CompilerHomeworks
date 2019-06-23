@@ -1,0 +1,27 @@
+(*
+ * Example with Functions
+ *)
+
+module a01
+
+// constants
+const x = 5;
+      y = 23;
+// variables
+var c: integer;
+    
+// procedure declaration
+procedure add(a:integer, b:integer) : integer
+begin
+  return a+b;
+end add;
+    
+// main function
+begin
+  c := add(x, y);
+  if (c > 10) then
+    println -c;
+  else 
+    println c;
+  end;
+end a01.

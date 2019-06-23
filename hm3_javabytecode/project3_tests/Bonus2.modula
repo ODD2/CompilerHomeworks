@@ -1,0 +1,17 @@
+(*
+ Bonus2
+*)
+
+
+module Bonus2
+var s1, s2, s3, s4 : string;
+begin
+  s1 := "Bonus2";
+  s2 := " is ";
+  s4 := ".";
+  s3 := "here";
+  print s1;
+  print s2;
+  print s3;
+  println s4;
+end Bonus2.

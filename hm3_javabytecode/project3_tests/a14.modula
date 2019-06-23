@@ -1,0 +1,24 @@
+(*
+ * Example with Functions
+ *)
+
+module a14
+
+// constants
+const x = 20;
+// variables
+var c : integer;
+procedure sub(a:integer, b:integer) : integer
+begin
+  return a -  b;
+end sub;
+   
+procedure add(d:integer, e:integer) : integer
+begin
+  return d + e;
+end add;
+// main function
+begin
+  c := add(10, 5) + sub(x, 4);
+  println c;
+end a14.

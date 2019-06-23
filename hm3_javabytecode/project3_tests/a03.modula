@@ -1,0 +1,27 @@
+(*
+ * Example with Functions
+ *)
+
+module a03
+
+// constants
+const x = 9;
+      y = 8;
+// variables
+var c: integer;
+    
+// procedure declaration
+procedure mul(a:integer, b:integer) : integer
+begin
+  return a * b;
+end mul;
+    
+// main function
+begin
+  c := mul(x, y);
+  if (c > 10) then
+    println -c;
+  else 
+    println c;
+  end;
+end a03.

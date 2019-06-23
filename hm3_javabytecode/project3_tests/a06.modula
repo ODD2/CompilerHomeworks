@@ -1,0 +1,28 @@
+(*
+ * Example with Functions
+ *)
+
+module a06
+
+// procedure declaration
+    
+  var c, d, e, f, g: integer;
+// main function
+begin
+  c := 2;
+  d := 5;
+  e := 10;
+  f := 3;
+  // 50
+  g := e * d;
+  // 25
+  g := g / c;
+  // 22
+  g := g - f;
+  // -22
+  if (g > 10) then
+    println -g;
+  else 
+    println g;
+  end;
+end a06.

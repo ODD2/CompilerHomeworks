@@ -1,0 +1,11 @@
+(* Hello World Example
+   Bonus -3-
+ *)
+module Bonus1
+begin
+  // Print text to the console
+  print "B";
+  print "O";
+  print "NU";
+  println "S";
+end Bonus1.

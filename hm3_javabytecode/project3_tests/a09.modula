@@ -1,0 +1,25 @@
+(*
+ * Example with Functions
+ *)
+
+module a09
+
+// constants
+const x = 30;
+// variables
+var c: integer;
+    
+procedure div(a:integer, b:integer) : integer
+begin
+  return a / b;
+end div;
+    
+// main function
+begin
+  c := div(x, 5);
+  if (c < 10 && c > 5) then
+    println -c;
+  else 
+    println c;
+  end;
+end a09.

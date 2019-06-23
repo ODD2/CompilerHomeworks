@@ -1,0 +1,20 @@
+(*
+ * Example with Functions
+ *)
+
+module a13
+
+// constants
+const x = 20;
+// variables
+var c : integer;
+    
+procedure add(d:integer, e:integer) : integer
+begin
+  return d + e;
+end add;
+// main function
+begin
+  c := add(10, 5) + add(x, 40);
+  println c;
+end a13.

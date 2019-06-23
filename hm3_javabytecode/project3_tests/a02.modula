@@ -1,0 +1,27 @@
+(*
+ * Example with Functions
+ *)
+
+module a02
+
+// constants
+const x = 5;
+      y = 2;
+// variables
+var c: integer;
+    
+// procedure declaration
+procedure sub(a:integer, b:integer) : integer
+begin
+  return a-b;
+end sub;
+    
+// main function
+begin
+  c := sub(x, y);
+  if (c > 10) then
+    println -c;
+  else 
+    println c;
+  end;
+end a02.

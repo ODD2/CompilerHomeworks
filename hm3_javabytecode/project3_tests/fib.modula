@@ -1,0 +1,27 @@
+(* fib.modula
+ *
+ * This test program computes the Nth Fibonacci number
+ *)
+
+module fib
+
+    // variables
+    var n, Fn1, FNminus1, temp: integer;
+
+begin
+    // variable initialization
+    n := 8;
+    Fn1 := 1;
+    FNminus1 := 1;
+    
+    // compute the nth Fibonacci number
+    while (n > 2) do
+      temp := Fn1;
+      Fn1 := Fn1 + FNminus1;
+      FNminus1 := temp;
+      n := n - 1;
+    end;
+    
+    // print result
+    println n;
+end fib.
