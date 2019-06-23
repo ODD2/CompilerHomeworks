@@ -1,0 +1,83 @@
+(*
+ * Example with Functions
+ *)
+
+module Example
+
+// constants
+const a = 5;
+
+// variables
+var c: integer;
+    
+
+
+// procedure declaration
+
+procedure fib(n:integer):integer
+    var Fn, FNminus1, temp: integer;
+begin
+    // variable initialization
+    Fn := 1;
+    FNminus1 := 1;
+    
+    // compute the nth Fibonacci number
+    while (n > 2) do
+      temp := Fn;
+      Fn := Fn + FNminus1;
+      FNminus1 := temp;
+      n := n - 1;
+    end;
+    
+    // print result
+    return Fn;
+end fib;
+
+procedure add(a:integer, b:integer) : integer
+begin
+  return a+b;
+end add;
+
+procedure proc(a:integer, b:integer):integer
+begin
+	return 29;
+end proc;
+    
+procedure test
+begin
+	println "Add:";
+	println add(10,9);
+	println "proc:";
+	println proc(12,13);
+	println "fib:";
+	println fib(3);
+end test;
+
+// main function
+begin
+  //add(12,2);
+  //test;
+  //c := proc(12,9);
+  c := c + add(12,10);
+  println c;
+  c := c - 12  - 10;
+  println c;
+  c := 20 / 15;
+  println c;
+  c := 87 / 2;
+  println c;
+  c := 15 * 2;
+  println c;
+  c :=  13 % 14;
+  println c;
+  c := 15 * (2+16/15*(1+1));
+  println c;
+  
+  if (c > 10) then
+    println c;
+  end;
+
+  
+
+  println "Hello""World";
+end Example.

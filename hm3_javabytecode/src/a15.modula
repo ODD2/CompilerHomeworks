@@ -1,0 +1,24 @@
+(*
+ * Example with Functions
+ *)
+
+module a15
+
+// constants
+const x = 20;
+// variables
+var c : integer;
+procedure bar(a:integer, b:integer) : integer
+begin
+  return a + b;
+end bar;
+   
+procedure foo(d:integer, e:integer) : integer
+begin
+  return bar(d, e);
+end foo;
+// main function
+begin
+  c := foo(100, x);
+  println c;
+end a15.

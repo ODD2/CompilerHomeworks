@@ -1,0 +1,55 @@
+class a17{
+field static int c
+field static int d
+method public static void main(java.lang.String[])
+max_stack 15
+max_locals 15
+{
+sipush 3
+putstatic int a17.d
+sipush 5
+putstatic int a17.c
+getstatic int a17.c
+sipush 10
+isub
+iflt L0
+iconst_0
+goto L1
+L0:
+nop
+iconst_1
+L1:
+nop
+ifeq L2
+L4:
+nop
+getstatic int a17.d
+sipush 1
+isub
+ifgt L6
+iconst_0
+goto L7
+L6:
+nop
+iconst_1
+L7:
+nop
+ifeq L5
+getstatic int a17.d
+sipush 1
+isub
+putstatic int a17.d
+getstatic java.io.PrintStream java.lang.System.out
+getstatic int a17.c
+invokevirtual void java.io.PrintStream.print(int)
+goto L4
+L5:
+nop
+L2:
+nop
+getstatic java.io.PrintStream java.lang.System.out
+getstatic int a17.d
+invokevirtual void java.io.PrintStream.println(int)
+return
+}
+}

@@ -1,0 +1,24 @@
+(*
+ * Example with Functions
+ *)
+
+module a16
+
+// constants
+const x = 5;
+// variables
+var c : integer;
+
+procedure laye(a:integer) : integer
+begin
+  if (a = 1) then
+     return 1;
+  end;
+  return a * laye(a - 1);
+end laye;
+   
+// main function
+begin
+  c := laye(x);
+  println c;
+end a16.

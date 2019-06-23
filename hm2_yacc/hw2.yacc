@@ -7,7 +7,7 @@
 #include <string.h>
 #include "header.h"
 using namespace std;
-//#define Trail(t) printf("{"t"}");
+//#define Traail(t) printf("{"t"}");
 
 //Extern Variables.
 extern FILE *yyin;

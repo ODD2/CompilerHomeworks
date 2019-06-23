@@ -1,0 +1,18 @@
+class Bonus4{
+field static float a
+method public static void main(java.lang.String[])
+max_stack 15
+max_locals 15
+{
+ldc 3.14f
+putstatic float Bonus4.a
+getstatic float Bonus4.a
+getstatic float Bonus4.a
+fadd
+putstatic float Bonus4.a
+getstatic java.io.PrintStream java.lang.System.out
+getstatic float Bonus4.a
+invokevirtual void java.io.PrintStream.println(float)
+return
+}
+}
